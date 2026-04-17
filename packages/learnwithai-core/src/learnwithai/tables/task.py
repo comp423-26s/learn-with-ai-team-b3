@@ -27,9 +27,7 @@ class TaskType(StrEnum):
 class Task(SQLModel, table=True):
     """Represents an assigned task (exam, quiz, homework, etc.) within a course."""
 
-    __table_args__ = (
-        Index("idx_assignment_course_on", "course_id")
-    )
+    __table_args__ = Index("idx_assignment_course_on", "course_id")
 
     id: int | None = Field(
         default=None,
