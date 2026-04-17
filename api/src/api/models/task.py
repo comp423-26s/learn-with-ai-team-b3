@@ -7,16 +7,14 @@ from datetime import datetime
 
 from pydantic import BaseModel
 
-from .async_job import AsyncJobInfo
-
 
 class TaskResponse(BaseModel):
     """Response for a single task."""
 
     id: int
+    title: str
     course_id: int
     type: str
-    status: str
+    due_at: datetime
+    max_points: float | None = None
     created_at: datetime
-    completed_at: datetime | None
-    job: AsyncJobInfo | None
