@@ -21,6 +21,7 @@ from learnwithai.repositories.async_job_repository import AsyncJobRepository
 from learnwithai.repositories.course_repository import CourseRepository
 from learnwithai.repositories.membership_repository import MembershipRepository
 from learnwithai.repositories.submission_repository import SubmissionRepository
+from learnwithai.repositories.task_repository import TaskRepository
 from learnwithai.repositories.user_repository import UserRepository
 from learnwithai.services.activity_service import ActivityService
 from learnwithai.services.course_service import CourseService
@@ -29,6 +30,7 @@ from learnwithai.services.csxl_auth_service import (
     CSXLAuthService,
 )
 from learnwithai.services.roster_upload_service import RosterUploadService
+from learnwithai.services.task_service import TaskService
 from learnwithai.tables.activity import Activity
 from learnwithai.tables.course import Course
 from learnwithai.tables.user import User
@@ -59,6 +61,10 @@ __all__ = [
     "SessionDI",
     "SettingsDI",
     "SubmissionRepositoryDI",
+    "TaskRepositoryDI",
+    "TaskServiceDI",
+    "task_repository_factory",
+    "task_service_factory",
     "UserByPIDPathDI",
     "UserRepositoryDI",
     "activity_repository_factory",
@@ -414,3 +420,18 @@ def get_activity_by_path_id(
 
 
 ActivityByPathDI: TypeAlias = Annotated[Activity, Depends(get_activity_by_path_id)]
+
+def tast_repository_factory(session: SessionDI) -> TaskRepository:
+    """Constructs a task repository bound to the current request session."""
+    return TaskRepository(session)
+
+TaskRepositoryDI: TypeAlias = Annotated[TaskRepository, Depends(tast_repository_factory)]
+
+def task_service_factory(
+    task_repo: TaskRepositoryDI,
+    membership_repo: MembershipRepositoryDI,
+) -> TaskService:
+    """Creates the task service for the current request."""
+    return TaskService(task_repo, membership_repo)
+
+TaskServiceDI: TypeAlias = Annotated[TaskService, Depends(task_service_factory)]
