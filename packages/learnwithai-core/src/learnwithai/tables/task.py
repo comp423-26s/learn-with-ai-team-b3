@@ -6,12 +6,13 @@
 from datetime import datetime
 from enum import StrEnum
 
-from sqlalchemy import Column, DateTime, ForeignKey, Index, Integer, String, Text, func
+from sqlalchemy import Column, DateTime, Float, ForeignKey, Index, Integer, String, Text, func
 from sqlmodel import Field, SQLModel
 
 
 class TaskType(StrEnum):
     """Discriminator for task types."""
+
     FINAL = "final"
     EXAM = "exam"
     PROJECT = "project"
@@ -20,20 +21,18 @@ class TaskType(StrEnum):
     PAPER = "paper"
     QUIZ = "quiz"
     HOMEWORK = "homework"
-    DEADLINE = "deadline" # catch all for any task types that don't fit the above
+    DEADLINE = "deadline"
 
 
 class Task(SQLModel, table=True):
-    """Represents an assigned task (exam, quiz, homework, etc) within a course.
+    """Represents an assigned task (exam, quiz, homework, etc.) within a course."""
 
-    This is the shared base table for all task types. Each type
-    stores additional detail in its own table linked via ``task_id``.
-    """
-
-    __table_args__ = (Index("ix_activity_course_id_type", "course_id", "type"),)
+    __table_args__ = (
+        Index("idx_assignment_course_on", "course_id")
+    )
 
     id: int | None = Field(
-        default = None,
+        default=None,
         sa_column=Column(Integer, primary_key=True, autoincrement=True),
     )
     title: str = Field(
@@ -42,14 +41,15 @@ class Task(SQLModel, table=True):
     course_id: int = Field(
         sa_column=Column(Integer, ForeignKey("course.id"), nullable=False),
     )
-    task_type: TaskType = Field(
+    type: TaskType = Field(
         sa_column=Column(String(32), nullable=False),
     )
     due_at: datetime = Field(
         sa_column=Column(DateTime(timezone=True), nullable=False),
     )
-    max_points: int = Field(
-        sa_column=Column(Integer, nullable=False),
+    max_points: float | None = Field(
+        default=None,
+        sa_column=Column(Float, nullable=True),
     )
     created_at: datetime = Field(
         sa_column=Column(
