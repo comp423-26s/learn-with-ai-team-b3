@@ -8,6 +8,7 @@ from .async_job import AsyncJob, AsyncJobStatus
 from .course import Course
 from .membership import Membership
 from .submission import Submission
+from .task import Task, TaskType
 from .user import User
 
 __all__ = [
@@ -18,5 +19,7 @@ __all__ = [
     "Course",
     "Membership",
     "Submission",
+    "Task",
+    "TaskType",
     "User",
 ]
