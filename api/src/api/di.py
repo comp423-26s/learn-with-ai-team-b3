@@ -421,11 +421,11 @@ def get_activity_by_path_id(
 
 ActivityByPathDI: TypeAlias = Annotated[Activity, Depends(get_activity_by_path_id)]
 
-def tast_repository_factory(session: SessionDI) -> TaskRepository:
+def task_repository_factory(session: SessionDI) -> TaskRepository:
     """Constructs a task repository bound to the current request session."""
     return TaskRepository(session)
 
-TaskRepositoryDI: TypeAlias = Annotated[TaskRepository, Depends(tast_repository_factory)]
+TaskRepositoryDI: TypeAlias = Annotated[TaskRepository, Depends(task_repository_factory)]
 
 def task_service_factory(
     task_repo: TaskRepositoryDI,
