@@ -11,6 +11,7 @@ from ..models import TaskResponse
 
 router = APIRouter(prefix="/courses/{course_id}/tasks", tags=["Tasks"])
 
+
 def _build_task_response(task: Task) -> TaskResponse:
     return TaskResponse(
         id=task.id,  # type: ignore[arg-type]
@@ -21,6 +22,7 @@ def _build_task_response(task: Task) -> TaskResponse:
         max_points=task.max_points,
         created_at=task.created_at,
     )
+
 
 @router.get(
     "",
