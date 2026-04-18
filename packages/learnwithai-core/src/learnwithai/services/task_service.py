@@ -3,6 +3,7 @@
 
 """Business logic for task access and authorization."""
 
+from learnwithai.errors import AuthorizationError
 from learnwithai.repositories.membership_repository import MembershipRepository
 from learnwithai.repositories.task_repository import TaskRepository
 from learnwithai.tables.course import Course
@@ -38,6 +39,10 @@ class TaskService:
             A list of tasks visible to the subject.
 
         Raises:
-            NotImplementedError: Until full membership checks are implemented.
+            AuthorizationError: If the subject is not a course member.
         """
-        raise NotImplementedError("TaskService.list_tasks is pending implementation.")
+        assert course.id is not None
+        membership = self._membership_repo.get_by_user_and_course(subject, course)
+        if membership is None:
+            raise AuthorizationError("Not a member of this course")
+        return self._task_repo.list_by_course(course.id)
