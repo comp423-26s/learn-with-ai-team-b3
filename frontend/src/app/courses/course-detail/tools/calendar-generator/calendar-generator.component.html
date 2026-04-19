@@ -8,10 +8,11 @@
   <mat-card-header>
     <mat-icon mat-card-avatar class="icon-import">cloud_upload</mat-icon>
     <mat-card-title>Import from File</mat-card-title>
-    <mat-card-subtitle>Upload a PDF syllabus or CSV schedule — parsed automatically with AI</mat-card-subtitle>
+    <mat-card-subtitle
+      >Upload a PDF syllabus or CSV schedule — parsed automatically with AI</mat-card-subtitle
+    >
   </mat-card-header>
   <mat-card-content>
-
     <!-- API key row -->
     <div class="api-key-row">
       <mat-form-field appearance="outline" class="api-key-field">
@@ -101,7 +102,6 @@
         </span>
       }
     </div>
-
   </mat-card-content>
 </mat-card>
 
@@ -184,7 +184,9 @@
           <mat-icon class="event-type-icon">{{ typeIcon(event.type) }}</mat-icon>
           <div class="event-info">
             <span class="event-title">{{ event.title }}</span>
-            <span class="event-meta">{{ typeLabel(event.type) }} &bull; {{ formatDate(event.date) }}</span>
+            <span class="event-meta"
+              >{{ typeLabel(event.type) }} &bull; {{ formatDate(event.date) }}</span
+            >
           </div>
           <button
             mat-icon-button

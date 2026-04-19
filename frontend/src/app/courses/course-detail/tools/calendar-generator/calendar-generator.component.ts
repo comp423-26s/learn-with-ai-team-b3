@@ -76,7 +76,9 @@ export class CalendarGenerator {
   );
 
   protected readonly monthLabel = computed(() =>
-    new Intl.DateTimeFormat('en-US', { month: 'long', year: 'numeric' }).format(this.currentMonth()),
+    new Intl.DateTimeFormat('en-US', { month: 'long', year: 'numeric' }).format(
+      this.currentMonth(),
+    ),
   );
 
   protected readonly calendarDays = computed((): CalendarDay[] => {
@@ -178,7 +180,9 @@ export class CalendarGenerator {
       const earliest = extracted.reduce((a, b) => (a.date < b.date ? a : b));
       this.jumpToMonth(earliest.date);
     } catch (err) {
-      this.parseError.set(err instanceof Error ? err.message : 'Parsing failed. Check your API key and try again.');
+      this.parseError.set(
+        err instanceof Error ? err.message : 'Parsing failed. Check your API key and try again.',
+      );
     } finally {
       this.isParsing.set(false);
     }

@@ -58,9 +58,10 @@ Return ONLY a JSON array with no markdown or extra text. Each element must have:
 
 If nothing is found, return an empty array [].`;
 
-    const messages = file.type === 'text/csv' || file.name.toLowerCase().endsWith('.csv')
-      ? await this.buildCsvMessages(file, prompt)
-      : await this.buildPdfMessages(file, prompt);
+    const messages =
+      file.type === 'text/csv' || file.name.toLowerCase().endsWith('.csv')
+        ? await this.buildCsvMessages(file, prompt)
+        : await this.buildPdfMessages(file, prompt);
 
     return this.callOpenAI(apiKey, messages);
   }
@@ -109,14 +110,17 @@ If nothing is found, return an empty array [].`;
 
     let content = data.choices?.[0]?.message?.content ?? '[]';
     // Strip markdown code fences if the model wraps output
-    content = content.replace(/^```(?:json)?\s*/i, '').replace(/\s*```$/, '').trim();
+    content = content
+      .replace(/^```(?:json)?\s*/i, '')
+      .replace(/\s*```$/, '')
+      .trim();
 
     const parsed: unknown = JSON.parse(content);
     const raw: unknown[] = Array.isArray(parsed)
       ? parsed
-      : ((parsed as Record<string, unknown>)['events'] as unknown[]) ??
+      : (((parsed as Record<string, unknown>)['events'] as unknown[]) ??
         ((parsed as Record<string, unknown>)['assignments'] as unknown[]) ??
-        [];
+        []);
 
     return (raw as Array<Record<string, unknown>>)
       .filter((e) => e['title'] && e['date'])
