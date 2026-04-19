@@ -112,6 +112,13 @@ export const routes: Routes = [
                     (m) => m.JokeGenerator,
                   ),
               },
+              {
+                path: 'calendar-generator',
+                loadComponent: () =>
+                  import('./courses/course-detail/tools/calendar-generator/calendar-generator.component').then(
+                    (m) => m.CalendarGenerator,
+                  ),
+              },
             ],
           },
           {

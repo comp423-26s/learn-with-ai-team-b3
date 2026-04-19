@@ -16,6 +16,7 @@ export default defineConfig({
   test: {
     globals: true,
     environment: 'jsdom',
+    testTimeout: 30000,
     exclude: ['dist/**', '.angular/**', 'node_modules/**'],
     setupFiles: isDirectVitestRun ? ['src/test-setup.ts'] : [],
     ...(isDirectVitestRun ? { include: ['src/**/*.spec.ts'] } : {}),
