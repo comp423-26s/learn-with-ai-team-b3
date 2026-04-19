@@ -24,6 +24,8 @@ from api.di import (
     joke_repository_factory,
     roster_upload_service_factory,
     submission_repository_factory,
+    task_repository_factory,
+    task_service_factory,
 )
 
 
@@ -185,6 +187,27 @@ def test_activity_service_factory_returns_service() -> None:
     result = activity_service_factory(activity_repo, membership_repo)
 
     assert isinstance(result, ActivityService)
+
+
+def test_task_repository_factory_returns_repository() -> None:
+    from learnwithai.repositories.task_repository import TaskRepository
+
+    session = MagicMock()
+
+    result = task_repository_factory(session)
+
+    assert isinstance(result, TaskRepository)
+
+
+def test_task_service_factory_returns_service() -> None:
+    from learnwithai.services.task_service import TaskService
+
+    task_repo = MagicMock()
+    membership_repo = MagicMock()
+
+    result = task_service_factory(task_repo, membership_repo)
+
+    assert isinstance(result, TaskService)
 
 
 def test_iyow_activity_service_factory_returns_service() -> None:
