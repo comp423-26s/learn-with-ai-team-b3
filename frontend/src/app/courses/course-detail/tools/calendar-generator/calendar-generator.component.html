@@ -1,0 +1,258 @@
+<!--
+  Copyright (c) 2026 Kris Jordan
+  SPDX-License-Identifier: MIT
+-->
+
+<!-- File import (OpenAI-powered) -->
+<mat-card appearance="outlined" class="import-card">
+  <mat-card-header>
+    <mat-icon mat-card-avatar class="icon-import">cloud_upload</mat-icon>
+    <mat-card-title>Import from File</mat-card-title>
+    <mat-card-subtitle>Upload a PDF syllabus or CSV schedule — parsed automatically with AI</mat-card-subtitle>
+  </mat-card-header>
+  <mat-card-content>
+
+    <!-- API key row -->
+    <div class="api-key-row">
+      <mat-form-field appearance="outline" class="api-key-field">
+        <mat-label>OpenAI API Key</mat-label>
+        <input
+          matInput
+          [type]="showApiKey() ? 'text' : 'password'"
+          [value]="apiKey()"
+          (input)="onApiKeyChange($any($event.target).value)"
+          placeholder="sk-..."
+          autocomplete="off"
+        />
+        <mat-hint>Stored locally in your browser — never sent to our servers</mat-hint>
+        <button
+          matSuffix
+          mat-icon-button
+          type="button"
+          (click)="showApiKey.set(!showApiKey())"
+          [attr.aria-label]="showApiKey() ? 'Hide API key' : 'Show API key'"
+        >
+          <mat-icon>{{ showApiKey() ? 'visibility_off' : 'visibility' }}</mat-icon>
+        </button>
+      </mat-form-field>
+    </div>
+
+    <!-- File selection -->
+    <input #fileInput type="file" accept=".pdf,.csv" hidden (change)="onFileSelected($event)" />
+
+    <div class="file-upload-area">
+      @if (!selectedFile()) {
+        <div class="upload-prompt">
+          <mat-icon class="upload-icon">upload_file</mat-icon>
+          <p class="upload-label">Select a PDF or CSV file</p>
+          <div class="upload-buttons">
+            <button mat-stroked-button type="button" (click)="fileInput.click()">
+              <mat-icon>picture_as_pdf</mat-icon>
+              Upload PDF Syllabus
+            </button>
+            <button mat-stroked-button type="button" (click)="fileInput.click()">
+              <mat-icon>table_chart</mat-icon>
+              Upload CSV Schedule
+            </button>
+          </div>
+        </div>
+      } @else {
+        <div class="selected-file">
+          <mat-icon class="file-icon">
+            {{ selectedFile()!.name.endsWith('.csv') ? 'table_chart' : 'picture_as_pdf' }}
+          </mat-icon>
+          <div class="file-info">
+            <span class="file-name">{{ selectedFile()!.name }}</span>
+            <span class="file-size">{{ (selectedFile()!.size / 1024).toFixed(0) }} KB</span>
+          </div>
+          <button mat-icon-button type="button" (click)="clearFile()" aria-label="Remove file">
+            <mat-icon>close</mat-icon>
+          </button>
+        </div>
+      }
+    </div>
+
+    <!-- Actions + feedback -->
+    <div class="import-actions">
+      <button
+        mat-flat-button
+        type="button"
+        (click)="parseUploadedFile()"
+        [disabled]="!selectedFile() || isParsing()"
+      >
+        @if (isParsing()) {
+          <mat-spinner diameter="18" />
+        } @else {
+          <mat-icon>auto_fix_high</mat-icon>
+        }
+        {{ isParsing() ? 'Parsing\u2026' : 'Parse & Add Events' }}
+      </button>
+
+      @if (parseSuccessCount() !== null) {
+        <span class="feedback feedback-success">
+          <mat-icon>check_circle</mat-icon>
+          Added {{ parseSuccessCount() }} event{{ parseSuccessCount() !== 1 ? 's' : '' }} from file
+        </span>
+      }
+      @if (parseError()) {
+        <span class="feedback feedback-error">
+          <mat-icon>error</mat-icon>
+          {{ parseError() }}
+        </span>
+      }
+    </div>
+
+  </mat-card-content>
+</mat-card>
+
+<!-- Manual entry forms -->
+<div class="forms-row">
+  <!-- Add Assignment -->
+  <mat-card appearance="outlined" class="form-card">
+    <mat-card-header>
+      <mat-icon mat-card-avatar class="icon-assignment">assignment</mat-icon>
+      <mat-card-title>Add Assignment</mat-card-title>
+      <mat-card-subtitle>Homework, projects, lab reports</mat-card-subtitle>
+    </mat-card-header>
+    <mat-card-content>
+      <form [formGroup]="assignmentForm" (ngSubmit)="addAssignment()" class="event-form">
+        <mat-form-field appearance="outline" class="full-width">
+          <mat-label>Title</mat-label>
+          <input matInput formControlName="title" placeholder="e.g. Problem Set 1" />
+        </mat-form-field>
+        <mat-form-field appearance="outline" class="full-width">
+          <mat-label>Due Date</mat-label>
+          <input matInput type="date" formControlName="date" />
+        </mat-form-field>
+        <button mat-flat-button type="submit" [disabled]="assignmentForm.invalid">
+          <mat-icon>add</mat-icon>
+          Add Assignment
+        </button>
+      </form>
+    </mat-card-content>
+  </mat-card>
+
+  <!-- Add Exam -->
+  <mat-card appearance="outlined" class="form-card">
+    <mat-card-header>
+      <mat-icon mat-card-avatar class="icon-exam">school</mat-icon>
+      <mat-card-title>Add Exam</mat-card-title>
+      <mat-card-subtitle>Quizzes, midterms, and finals</mat-card-subtitle>
+    </mat-card-header>
+    <mat-card-content>
+      <form [formGroup]="examForm" (ngSubmit)="addExam()" class="event-form">
+        <mat-form-field appearance="outline" class="full-width">
+          <mat-label>Title</mat-label>
+          <input matInput formControlName="title" placeholder="e.g. Midterm Exam" />
+        </mat-form-field>
+        <mat-form-field appearance="outline" class="full-width">
+          <mat-label>Date</mat-label>
+          <input matInput type="date" formControlName="date" />
+        </mat-form-field>
+        <mat-form-field appearance="outline" class="full-width">
+          <mat-label>Type</mat-label>
+          <mat-select formControlName="type">
+            <mat-option value="quiz">Quiz</mat-option>
+            <mat-option value="midterm">Midterm</mat-option>
+            <mat-option value="final">Final</mat-option>
+          </mat-select>
+        </mat-form-field>
+        <button mat-flat-button type="submit" [disabled]="examForm.invalid">
+          <mat-icon>add</mat-icon>
+          Add Exam
+        </button>
+      </form>
+    </mat-card-content>
+  </mat-card>
+</div>
+
+<!-- Events list -->
+@if (sortedEvents().length > 0) {
+  <section class="events-section" aria-label="Added events">
+    <div class="events-header">
+      <h3 class="events-title">
+        {{ sortedEvents().length }} event{{ sortedEvents().length !== 1 ? 's' : '' }} added
+      </h3>
+      <button mat-flat-button (click)="exportIcs()" aria-label="Export calendar as .ics file">
+        <mat-icon>download</mat-icon>
+        Export .ics
+      </button>
+    </div>
+    <div class="events-list" role="list">
+      @for (event of sortedEvents(); track event.id) {
+        <div class="event-item event-{{ event.type }}" role="listitem">
+          <mat-icon class="event-type-icon">{{ typeIcon(event.type) }}</mat-icon>
+          <div class="event-info">
+            <span class="event-title">{{ event.title }}</span>
+            <span class="event-meta">{{ typeLabel(event.type) }} &bull; {{ formatDate(event.date) }}</span>
+          </div>
+          <button
+            mat-icon-button
+            class="remove-btn"
+            (click)="removeEvent(event.id)"
+            aria-label="Remove event"
+          >
+            <mat-icon>close</mat-icon>
+          </button>
+        </div>
+      }
+    </div>
+  </section>
+} @else {
+  <p class="empty-state">Add assignments and exams above to populate the calendar.</p>
+}
+
+<!-- Calendar -->
+<section class="calendar-section" aria-label="Calendar view">
+  <div class="calendar-nav">
+    <button mat-icon-button (click)="prevMonth()" aria-label="Previous month">
+      <mat-icon>chevron_left</mat-icon>
+    </button>
+    <h2 class="month-label">{{ monthLabel() }}</h2>
+    <button mat-icon-button (click)="nextMonth()" aria-label="Next month">
+      <mat-icon>chevron_right</mat-icon>
+    </button>
+  </div>
+
+  <div class="calendar-grid" role="grid">
+    @for (day of weekDays; track day) {
+      <div class="day-header" role="columnheader">{{ day }}</div>
+    }
+    @for (day of calendarDays(); track $index) {
+      <div
+        class="calendar-day"
+        [class.today]="day.isToday"
+        [class.empty-day]="!day.dayNumber"
+        role="gridcell"
+      >
+        @if (day.dayNumber) {
+          <span class="day-number" [class.today-circle]="day.isToday">{{ day.dayNumber }}</span>
+          @for (event of day.events; track event.id) {
+            <div class="event-badge badge-{{ event.type }}" [title]="event.title">
+              {{ event.title }}
+            </div>
+          }
+        }
+      </div>
+    }
+  </div>
+
+  <div class="calendar-legend" aria-label="Calendar legend">
+    <div class="legend-item">
+      <div class="legend-dot dot-assignment"></div>
+      <span>Assignment</span>
+    </div>
+    <div class="legend-item">
+      <div class="legend-dot dot-quiz"></div>
+      <span>Quiz</span>
+    </div>
+    <div class="legend-item">
+      <div class="legend-dot dot-midterm"></div>
+      <span>Midterm</span>
+    </div>
+    <div class="legend-item">
+      <div class="legend-dot dot-final"></div>
+      <span>Final</span>
+    </div>
+  </div>
+</section>
