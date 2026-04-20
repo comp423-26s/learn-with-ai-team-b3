@@ -1,0 +1,123 @@
+<!--
+  Copyright (c) 2026 Kris Jordan
+  SPDX-License-Identifier: MIT
+-->
+
+<!-- Events list -->
+@if (sortedEvents().length > 0) {
+  <section class="events-section" aria-label="Added events">
+    <div class="events-header">
+      <h3 class="events-title">
+        {{ sortedEvents().length }} event{{ sortedEvents().length !== 1 ? 's' : '' }} added
+      </h3>
+      @if (actionLabel()) {
+        <button
+          mat-flat-button
+          type="button"
+          (click)="action.emit()"
+          [attr.aria-label]="actionAriaLabel() ?? actionLabel()"
+        >
+          @if (actionIcon()) {
+            <mat-icon>{{ actionIcon() }}</mat-icon>
+          }
+          {{ actionLabel() }}
+        </button>
+      }
+    </div>
+    <div class="events-list" role="list">
+      @for (event of sortedEvents(); track event.id) {
+        <div
+          class="event-item"
+          role="listitem"
+          [class.event-assignment]="styleType(event.type) === 'assignment'"
+          [class.event-quiz]="styleType(event.type) === 'quiz'"
+          [class.event-midterm]="styleType(event.type) === 'midterm'"
+          [class.event-final]="styleType(event.type) === 'final'"
+        >
+          <mat-icon class="event-type-icon">{{ typeIcon(event.type) }}</mat-icon>
+          <div class="event-info">
+            <span class="event-title">{{ event.title }}</span>
+            <span class="event-meta"
+              >{{ typeLabel(event.type) }} &bull; {{ formatDate(event.date) }}</span
+            >
+          </div>
+          @if (allowRemoval()) {
+            <button
+              mat-icon-button
+              class="remove-btn"
+              type="button"
+              (click)="removeEvent.emit(event.id)"
+              aria-label="Remove event"
+            >
+              <mat-icon>close</mat-icon>
+            </button>
+          }
+        </div>
+      }
+    </div>
+  </section>
+} @else {
+  <p class="empty-state">{{ emptyMessage() }}</p>
+}
+
+<!-- Calendar -->
+<section class="calendar-section" aria-label="Calendar view">
+  <div class="calendar-nav">
+    <button mat-icon-button type="button" (click)="prevMonth()" aria-label="Previous month">
+      <mat-icon>chevron_left</mat-icon>
+    </button>
+    <h2 class="month-label">{{ monthLabel() }}</h2>
+    <button mat-icon-button type="button" (click)="nextMonth()" aria-label="Next month">
+      <mat-icon>chevron_right</mat-icon>
+    </button>
+  </div>
+
+  <div class="calendar-grid" role="grid">
+    @for (day of weekDays; track day) {
+      <div class="day-header" role="columnheader">{{ day }}</div>
+    }
+    @for (day of calendarDays(); track $index) {
+      <div
+        class="calendar-day"
+        role="gridcell"
+        [class.today]="day.isToday"
+        [class.empty-day]="!day.dayNumber"
+      >
+        @if (day.dayNumber) {
+          <span class="day-number" [class.today-circle]="day.isToday">{{ day.dayNumber }}</span>
+          @for (event of day.events; track event.id) {
+            <div
+              class="event-badge"
+              [class.badge-assignment]="styleType(event.type) === 'assignment'"
+              [class.badge-quiz]="styleType(event.type) === 'quiz'"
+              [class.badge-midterm]="styleType(event.type) === 'midterm'"
+              [class.badge-final]="styleType(event.type) === 'final'"
+              [title]="event.title"
+            >
+              {{ event.title }}
+            </div>
+          }
+        }
+      </div>
+    }
+  </div>
+
+  <div class="calendar-legend" aria-label="Calendar legend">
+    <div class="legend-item">
+      <div class="legend-dot dot-assignment"></div>
+      <span>Assignment</span>
+    </div>
+    <div class="legend-item">
+      <div class="legend-dot dot-quiz"></div>
+      <span>Quiz</span>
+    </div>
+    <div class="legend-item">
+      <div class="legend-dot dot-midterm"></div>
+      <span>Midterm/Exam</span>
+    </div>
+    <div class="legend-item">
+      <div class="legend-dot dot-final"></div>
+      <span>Final</span>
+    </div>
+  </div>
+</section>
