@@ -1,0 +1,253 @@
+/*
+ * Copyright (c) 2026 Kris Jordan
+ * SPDX-License-Identifier: MIT
+ */
+
+// ── Events list ───────────────────────────────────────────────────────────────
+
+.events-section {
+  margin-bottom: 2rem;
+}
+
+.events-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 0.75rem;
+}
+
+.events-title {
+  margin: 0;
+  font-size: 1rem;
+  font-weight: 500;
+  color: var(--mat-sys-on-surface-variant);
+}
+
+.events-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.event-item {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.5rem 0.75rem;
+  border-radius: 8px;
+  border-left: 4px solid transparent;
+
+  &.event-assignment {
+    background: var(--mat-sys-primary-container);
+    border-left-color: var(--mat-sys-primary);
+
+    .event-type-icon {
+      color: var(--mat-sys-primary);
+    }
+  }
+
+  &.event-quiz {
+    background: var(--mat-sys-tertiary-container);
+    border-left-color: var(--mat-sys-tertiary);
+
+    .event-type-icon {
+      color: var(--mat-sys-tertiary);
+    }
+  }
+
+  &.event-midterm {
+    background: #fef3c7;
+    border-left-color: #d97706;
+
+    .event-type-icon {
+      color: #d97706;
+    }
+  }
+
+  &.event-final {
+    background: var(--mat-sys-error-container);
+    border-left-color: var(--mat-sys-error);
+
+    .event-type-icon {
+      color: var(--mat-sys-error);
+    }
+  }
+}
+
+.event-info {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.event-title {
+  font-weight: 500;
+  font-size: 0.9375rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.event-meta {
+  font-size: 0.8125rem;
+  opacity: 0.7;
+}
+
+.remove-btn {
+  color: var(--mat-sys-on-surface-variant);
+  flex-shrink: 0;
+}
+
+.empty-state {
+  text-align: center;
+  opacity: 0.6;
+  padding: 1.5rem 0;
+  margin-bottom: 2rem;
+}
+
+// ── Calendar ─────────────────────────────────────────────────────────────────-
+
+.calendar-section {
+  border: 1px solid var(--mat-sys-outline-variant);
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+.calendar-nav {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1rem;
+  background: var(--mat-sys-surface-container);
+  border-bottom: 1px solid var(--mat-sys-outline-variant);
+}
+
+.month-label {
+  flex: 1;
+  margin: 0;
+  font-size: 1.125rem;
+  font-weight: 600;
+  text-align: center;
+}
+
+.calendar-grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+
+  .day-header {
+    padding: 0.5rem 0.25rem;
+    text-align: center;
+    font-size: 0.8125rem;
+    font-weight: 600;
+    color: var(--mat-sys-on-surface-variant);
+    background: var(--mat-sys-surface-container-low);
+    border-bottom: 1px solid var(--mat-sys-outline-variant);
+  }
+
+  .calendar-day {
+    min-height: 88px;
+    padding: 0.375rem;
+    border-right: 1px solid var(--mat-sys-outline-variant);
+    border-bottom: 1px solid var(--mat-sys-outline-variant);
+    vertical-align: top;
+
+    &.empty-day {
+      background: var(--mat-sys-surface-container-lowest);
+    }
+
+    &:nth-child(7n) {
+      border-right: none;
+    }
+  }
+}
+
+.day-number {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 26px;
+  height: 26px;
+  font-size: 0.875rem;
+  font-weight: 500;
+  margin-bottom: 0.25rem;
+  border-radius: 50%;
+
+  &.today-circle {
+    background: var(--mat-sys-primary);
+    color: var(--mat-sys-on-primary);
+  }
+}
+
+.event-badge {
+  font-size: 0.6875rem;
+  font-weight: 500;
+  padding: 2px 5px;
+  border-radius: 4px;
+  margin-bottom: 2px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  cursor: default;
+
+  &.badge-assignment {
+    background: var(--mat-sys-primary-container);
+    color: var(--mat-sys-on-primary-container);
+  }
+
+  &.badge-quiz {
+    background: var(--mat-sys-tertiary-container);
+    color: var(--mat-sys-on-tertiary-container);
+  }
+
+  &.badge-midterm {
+    background: #fef3c7;
+    color: #92400e;
+  }
+
+  &.badge-final {
+    background: var(--mat-sys-error-container);
+    color: var(--mat-sys-on-error-container);
+  }
+}
+
+// ── Legend ─────────────────────────────────────────────────────────────────---
+
+.calendar-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+  padding: 0.75rem 1rem;
+  background: var(--mat-sys-surface-container-low);
+  border-top: 1px solid var(--mat-sys-outline-variant);
+}
+
+.legend-item {
+  display: flex;
+  align-items: center;
+  gap: 0.375rem;
+  font-size: 0.8125rem;
+}
+
+.legend-dot {
+  width: 12px;
+  height: 12px;
+  border-radius: 3px;
+  flex-shrink: 0;
+
+  &.dot-assignment {
+    background: var(--mat-sys-primary);
+  }
+
+  &.dot-quiz {
+    background: var(--mat-sys-tertiary);
+  }
+
+  &.dot-midterm {
+    background: #d97706;
+  }
+
+  &.dot-final {
+    background: var(--mat-sys-error);
+  }
+}
