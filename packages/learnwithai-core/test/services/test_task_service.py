@@ -16,6 +16,7 @@ from learnwithai.tables.course import Course, Term
 from learnwithai.tables.membership import Membership, MembershipState, MembershipType
 from learnwithai.tables.task import Task, TaskType
 from learnwithai.tables.user import User
+from sqlalchemy.exc import IntegrityError
 from sqlmodel import Session, select
 
 
@@ -203,6 +204,27 @@ def test_create_task_rejects_duplicate(session: Session) -> None:
             TaskType.QUIZ,
             datetime(2026, 1, 20, 12, 0, tzinfo=timezone.utc),
         )
+
+
+def test_db_unique_constraint_rejects_duplicate_task(session: Session) -> None:
+    course = _seed_course(session)
+    due_at = datetime(2026, 1, 20, 12, 0, tzinfo=timezone.utc)
+
+    _seed_task(session, course, "Quiz 1", TaskType.QUIZ, due_at)
+
+    session.add(
+        Task(
+            title="Quiz 1",
+            course_id=course.id,  # type: ignore[arg-type]
+            type=TaskType.QUIZ,
+            due_at=due_at,
+        )
+    )
+
+    with pytest.raises(IntegrityError):
+        session.flush()
+
+    session.rollback()
 
 
 def test_update_task_allows_staff_and_checks_duplicate(session: Session) -> None:
