@@ -1,0 +1,36 @@
+<!--
+  Copyright (c) 2026 Kris Jordan
+  SPDX-License-Identifier: MIT
+-->
+
+<section class="student-calendar">
+  <header class="calendar-header">
+    <div class="header-copy">
+      <p class="eyebrow">Student calendar</p>
+      <h2 class="title">Course timeline</h2>
+      <p class="subtitle">Stay on top of homework, quizzes, and exams in one place.</p>
+    </div>
+    <div class="summary" aria-label="Task count">
+      <span class="summary-label">Tasks</span>
+      <span class="summary-value">{{ taskCount() }}</span>
+    </div>
+  </header>
+
+  @if (isLoading()) {
+    <div class="loading" aria-live="polite">
+      <mat-spinner diameter="36" />
+      <span>Loading course tasks...</span>
+    </div>
+  } @else if (errorMessage()) {
+    <div class="error-card" role="alert">
+      <p>{{ errorMessage() }}</p>
+      <button mat-flat-button type="button" (click)="reload()">Retry</button>
+    </div>
+  } @else {
+    <app-task-calendar
+      [events]="calendarEvents()"
+      [focusDate]="focusDate()"
+      [emptyMessage]="'No tasks have been posted for this course yet.'"
+    />
+  }
+</section>
