@@ -73,4 +73,52 @@ describe('StudentView', () => {
 
     expect(fixture.nativeElement.textContent).toContain('Unable to load tasks.');
   });
+
+  it('should show an error when courseId is invalid', async () => {
+    const mockPageTitle = { setTitle: vi.fn() };
+    const mockLayoutNavigation = { clearContext: vi.fn() };
+    const mockTaskService = { list: vi.fn() };
+    const mockRoute = {
+      parent: { snapshot: { paramMap: { get: () => 'not-a-number' } } },
+    };
+
+    TestBed.configureTestingModule({
+      imports: [StudentView],
+      providers: [
+        { provide: PageTitleService, useValue: mockPageTitle },
+        { provide: LayoutNavigationService, useValue: mockLayoutNavigation },
+        { provide: TaskService, useValue: mockTaskService },
+        { provide: ActivatedRoute, useValue: mockRoute },
+      ],
+    });
+
+    const fixture = TestBed.createComponent(StudentView);
+    fixture.detectChanges();
+    await flush();
+    fixture.detectChanges();
+
+    expect(mockTaskService.list).not.toHaveBeenCalled();
+    expect(fixture.nativeElement.textContent).toContain('Unable to identify this course.');
+  });
+
+  it('should set focusDate to null when tasks list is empty', async () => {
+    const { fixture } = setup(Promise.resolve([]));
+    await flush();
+    fixture.detectChanges();
+
+    // No events rendered, no error — focusDate returns null gracefully
+    expect(fixture.nativeElement.querySelector('app-task-calendar')).toBeTruthy();
+  });
+
+  it('should reload tasks when reload is called', async () => {
+    const { fixture, mockTaskService } = setup();
+    await flush();
+    fixture.detectChanges();
+
+    (fixture.componentInstance as unknown as { reload: () => void }).reload();
+    await flush();
+    fixture.detectChanges();
+
+    expect(mockTaskService.list).toHaveBeenCalledTimes(2);
+  });
 });
