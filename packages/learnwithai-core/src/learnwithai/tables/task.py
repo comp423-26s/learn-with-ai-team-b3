@@ -6,7 +6,7 @@
 from datetime import datetime
 from enum import StrEnum
 
-from sqlalchemy import Column, DateTime, Float, ForeignKey, Index, Integer, String, Text, func
+from sqlalchemy import Column, DateTime, Float, ForeignKey, Index, Integer, String, Text, UniqueConstraint, func
 from sqlmodel import Field, SQLModel
 
 
@@ -27,7 +27,10 @@ class TaskType(StrEnum):
 class Task(SQLModel, table=True):
     """Represents an assigned task (exam, quiz, homework, etc.) within a course."""
 
-    __table_args__ = (Index("idx_assignment_course_on", "course_id"),)
+    __table_args__ = (
+        Index("idx_assignment_course_on", "course_id"),
+        UniqueConstraint("course_id", "title", "due_at", name="uq_assignment_title_course_due"),
+    )
 
     id: int | None = Field(
         default=None,
