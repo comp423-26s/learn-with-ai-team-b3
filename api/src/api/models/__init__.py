@@ -46,7 +46,6 @@ __all__ = [
     "StudentSubmissionRow",
     "SubmitIyowRequest",
     "TaskResponse",
-    "UpdateMemberRoleRequest",
     "UpdateCourseRequest",
     "UpdateIyowActivityRequest",
     "UpdateProfileRequest",
