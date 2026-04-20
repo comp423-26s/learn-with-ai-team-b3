@@ -28,6 +28,7 @@ def test_api_models_exports_expected_symbols() -> None:
         "RosterUploadStatusResponse",
         "StudentSubmissionRow",
         "SubmitIyowRequest",
+        "TaskResponse",
         "UpdateCourseRequest",
         "UpdateIyowActivityRequest",
         "UpdateMemberRoleRequest",
