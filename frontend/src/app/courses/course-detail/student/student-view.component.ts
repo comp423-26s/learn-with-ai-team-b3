@@ -89,7 +89,6 @@ export class StudentView {
     }
   }
 
-
   private findEarliestDate(tasks: Task[]): string | null {
     const dates = tasks.map((task) => this.toDateString(task.due_at)).filter(Boolean);
     if (dates.length === 0) {
