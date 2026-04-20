@@ -166,95 +166,14 @@
   </mat-card>
 </div>
 
-<!-- Events list -->
-@if (sortedEvents().length > 0) {
-  <section class="events-section" aria-label="Added events">
-    <div class="events-header">
-      <h3 class="events-title">
-        {{ sortedEvents().length }} event{{ sortedEvents().length !== 1 ? 's' : '' }} added
-      </h3>
-      <button mat-flat-button (click)="exportIcs()" aria-label="Export calendar as .ics file">
-        <mat-icon>download</mat-icon>
-        Export .ics
-      </button>
-    </div>
-    <div class="events-list" role="list">
-      @for (event of sortedEvents(); track event.id) {
-        <div class="event-item event-{{ event.type }}" role="listitem">
-          <mat-icon class="event-type-icon">{{ typeIcon(event.type) }}</mat-icon>
-          <div class="event-info">
-            <span class="event-title">{{ event.title }}</span>
-            <span class="event-meta"
-              >{{ typeLabel(event.type) }} &bull; {{ formatDate(event.date) }}</span
-            >
-          </div>
-          <button
-            mat-icon-button
-            class="remove-btn"
-            (click)="removeEvent(event.id)"
-            aria-label="Remove event"
-          >
-            <mat-icon>close</mat-icon>
-          </button>
-        </div>
-      }
-    </div>
-  </section>
-} @else {
-  <p class="empty-state">Add assignments and exams above to populate the calendar.</p>
-}
-
-<!-- Calendar -->
-<section class="calendar-section" aria-label="Calendar view">
-  <div class="calendar-nav">
-    <button mat-icon-button (click)="prevMonth()" aria-label="Previous month">
-      <mat-icon>chevron_left</mat-icon>
-    </button>
-    <h2 class="month-label">{{ monthLabel() }}</h2>
-    <button mat-icon-button (click)="nextMonth()" aria-label="Next month">
-      <mat-icon>chevron_right</mat-icon>
-    </button>
-  </div>
-
-  <div class="calendar-grid" role="grid">
-    @for (day of weekDays; track day) {
-      <div class="day-header" role="columnheader">{{ day }}</div>
-    }
-    @for (day of calendarDays(); track $index) {
-      <div
-        class="calendar-day"
-        [class.today]="day.isToday"
-        [class.empty-day]="!day.dayNumber"
-        role="gridcell"
-      >
-        @if (day.dayNumber) {
-          <span class="day-number" [class.today-circle]="day.isToday">{{ day.dayNumber }}</span>
-          @for (event of day.events; track event.id) {
-            <div class="event-badge badge-{{ event.type }}" [title]="event.title">
-              {{ event.title }}
-            </div>
-          }
-        }
-      </div>
-    }
-  </div>
-
-  <div class="calendar-legend" aria-label="Calendar legend">
-    <div class="legend-item">
-      <div class="legend-dot dot-assignment"></div>
-      <span>Assignment</span>
-    </div>
-    <div class="legend-item">
-      <div class="legend-dot dot-quiz"></div>
-      <span>Quiz</span>
-    </div>
-    <div class="legend-item">
-      <div class="legend-dot dot-midterm"></div>
-      <span>Midterm</span>
-    </div>
-    <div class="legend-item">
-      <div class="legend-dot dot-final"></div>
-      <span>Final</span>
-    </div>
-  </div>
-</section>
+<app-task-calendar
+  [events]="events()"
+  [allowRemoval]="true"
+  [actionLabel]="'Export .ics'"
+  [actionIcon]="'download'"
+  [actionAriaLabel]="'Export calendar as .ics file'"
+  [emptyMessage]="'Add assignments and exams above to populate the calendar.'"
+  [focusDate]="focusDate()"
+  (removeEvent)="removeEvent($event)"
+  (action)="exportIcs()"
+/>
