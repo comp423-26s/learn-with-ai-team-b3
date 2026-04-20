@@ -9,11 +9,14 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { PageTitleService } from '../../../page-title.service';
 import { LayoutNavigationService } from '../../../layout/layout-navigation.service';
-import { TaskCalendar, TaskCalendarEventType } from '../shared/task-calendar/task-calendar.component';
+import {
+  TaskCalendar,
+  TaskCalendarEventType,
+} from '../shared/task-calendar/task-calendar.component';
 import { Task } from '../../../api/models';
 import { TaskService } from './task.service';
 
-/** Placeholder for student-facing course tools. */
+/** Student-facing course calendar view. */
 @Component({
   selector: 'app-student-view',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -85,6 +88,7 @@ export class StudentView {
       this.isLoading.set(false);
     }
   }
+
 
   private findEarliestDate(tasks: Task[]): string | null {
     const dates = tasks.map((task) => this.toDateString(task.due_at)).filter(Boolean);
