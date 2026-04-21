@@ -16,6 +16,36 @@ import {
 import { Task } from '../../../api/models';
 import { TaskService } from './task.service';
 
+const SUPPORTED_TYPES = new Set<TaskCalendarEventType>([
+  'assignment',
+  'quiz',
+  'midterm',
+  'final',
+  'exam',
+  'project',
+  'reading',
+  'presentation',
+  'paper',
+  'homework',
+  'deadline',
+]);
+
+function toDateString(value: string): string {
+  return value.split('T')[0]!;
+}
+
+function normalizeType(value: string): TaskCalendarEventType {
+  const type = value.toLowerCase() as TaskCalendarEventType;
+  return SUPPORTED_TYPES.has(type) ? type : 'assignment';
+}
+
+function findEarliestDate(tasks: Task[]): string | null {
+  return tasks.reduce<string | null>((earliest, task) => {
+    const date = toDateString(task.due_at);
+    return earliest === null || date < earliest ? date : earliest;
+  }, null);
+}
+
 /** Student-facing course calendar view. */
 @Component({
   selector: 'app-student-view',
@@ -31,19 +61,6 @@ export class StudentView {
   private taskService = inject(TaskService);
 
   private readonly courseId = Number(this.route.parent?.snapshot.paramMap.get('id'));
-  private readonly supportedTypes = new Set<TaskCalendarEventType>([
-    'assignment',
-    'quiz',
-    'midterm',
-    'final',
-    'exam',
-    'project',
-    'reading',
-    'presentation',
-    'paper',
-    'homework',
-    'deadline',
-  ]);
 
   protected readonly tasks = signal<Task[]>([]);
   protected readonly isLoading = signal(true);
@@ -54,8 +71,8 @@ export class StudentView {
     this.tasks().map((task) => ({
       id: String(task.id),
       title: task.title,
-      date: this.toDateString(task.due_at),
-      type: this.normalizeType(task.type),
+      date: toDateString(task.due_at),
+      type: normalizeType(task.type),
     })),
   );
 
@@ -81,28 +98,11 @@ export class StudentView {
     try {
       const tasks = await this.taskService.list(this.courseId);
       this.tasks.set(tasks);
-      this.focusDate.set(this.findEarliestDate(tasks));
+      this.focusDate.set(findEarliestDate(tasks));
     } catch {
       this.errorMessage.set('Unable to load tasks. Please try again.');
     } finally {
       this.isLoading.set(false);
     }
-  }
-
-  private findEarliestDate(tasks: Task[]): string | null {
-    const dates = tasks.map((task) => this.toDateString(task.due_at)).filter(Boolean);
-    if (dates.length === 0) {
-      return null;
-    }
-    return dates.reduce((earliest, current) => (current < earliest ? current : earliest));
-  }
-
-  private toDateString(value: string): string {
-    return value.split('T')[0] ?? value;
-  }
-
-  private normalizeType(value: string): TaskCalendarEventType {
-    const type = value.toLowerCase() as TaskCalendarEventType;
-    return this.supportedTypes.has(type) ? type : 'assignment';
   }
 }
