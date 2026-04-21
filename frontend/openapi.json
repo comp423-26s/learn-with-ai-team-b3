@@ -1269,6 +1269,67 @@
         }
       }
     },
+    "/api/courses/{course_id}/tasks": {
+      "get": {
+        "tags": [
+          "Tasks"
+        ],
+        "summary": "List all tasks for a course",
+        "description": "Returns tasks visible to the authenticated user for the specified course.",
+        "operationId": "list_tasks",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "course_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Course Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/TaskResponse"
+                  },
+                  "title": "Response List Tasks"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Not authenticated."
+          },
+          "403": {
+            "description": "Insufficient permissions."
+          },
+          "404": {
+            "description": "Course not found."
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/courses/{course_id}/roster-uploads": {
       "post": {
         "tags": [
@@ -2529,6 +2590,58 @@
         ],
         "title": "SubmitIyowRequest",
         "description": "Request body for submitting a student response to an IYOW activity."
+      },
+      "TaskResponse": {
+        "properties": {
+          "id": {
+            "type": "integer",
+            "title": "Id"
+          },
+          "title": {
+            "type": "string",
+            "title": "Title"
+          },
+          "course_id": {
+            "type": "integer",
+            "title": "Course Id"
+          },
+          "type": {
+            "type": "string",
+            "title": "Type"
+          },
+          "due_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Due At"
+          },
+          "max_points": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Max Points"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Created At"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "title",
+          "course_id",
+          "type",
+          "due_at",
+          "created_at"
+        ],
+        "title": "TaskResponse",
+        "description": "Response for a single task."
       },
       "Term": {
         "type": "string",

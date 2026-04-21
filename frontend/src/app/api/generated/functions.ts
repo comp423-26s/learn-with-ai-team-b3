@@ -50,6 +50,8 @@ export type { GetActiveSubmission$Params as GetActiveSubmission$Params } from '.
 export { getActiveSubmission as getActiveSubmission } from './fn/activities/get-active-submission';
 export type { GetStudentSubmissionHistory$Params as GetStudentSubmissionHistory$Params } from './fn/activities/get-student-submission-history';
 export { getStudentSubmissionHistory as getStudentSubmissionHistory } from './fn/activities/get-student-submission-history';
+export type { ListTasks$Params as ListTasks$Params } from './fn/tasks/list-tasks';
+export { listTasks as listTasks } from './fn/tasks/list-tasks';
 export type { UploadRosterCsv$Params as UploadRosterCsv$Params } from './fn/roster-uploads/upload-roster-csv';
 export { uploadRosterCsv as uploadRosterCsv } from './fn/roster-uploads/upload-roster-csv';
 export type { GetRosterUploadStatus$Params as GetRosterUploadStatus$Params } from './fn/roster-uploads/get-roster-upload-status';

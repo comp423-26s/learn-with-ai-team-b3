@@ -29,6 +29,7 @@ export type { RosterUploadResponse } from './models/roster-upload-response';
 export type { RosterUploadStatusResponse } from './models/roster-upload-status-response';
 export type { StudentSubmissionRow } from './models/student-submission-row';
 export type { SubmitIyowRequest } from './models/submit-iyow-request';
+export type { TaskResponse } from './models/task-response';
 export type { Term } from './models/term';
 export type { UpdateCourseRequest } from './models/update-course-request';
 export type { UpdateIyowActivityRequest } from './models/update-iyow-activity-request';
