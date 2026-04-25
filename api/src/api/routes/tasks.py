@@ -15,6 +15,8 @@ from ..di import (
 )
 from ..models import SyllabusUploadResponse, TaskResponse
 
+MAX_FILE_SIZE_BYTES = 10 * 1024 * 1024  # 10MB
+
 router = APIRouter(prefix="/courses/{course_id}/tasks", tags=["Tasks"])
 
 
@@ -88,6 +90,11 @@ async def upload_syllabus(
         The accepted upload job ID and status.
     """
     course_svc.authorize_instructor(subject, course)
+
+    if file is not None:
+        content_len = file.headers.get("Content-Length")
+        if content_len and int(content_len) > MAX_FILE_SIZE_BYTES:
+            raise HTTPException(status_code=400, detail="File size exceeds the 10MB limit.")
 
     if file is not None and syllabus_text is not None:
         raise HTTPException(status_code=400, detail="Provide file or syllabus_text, not both.")
