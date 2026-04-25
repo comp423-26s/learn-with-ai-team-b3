@@ -111,7 +111,7 @@ async def upload_syllabus(
         except UnicodeDecodeError as exc:
             raise HTTPException(status_code=400, detail="File must be UTF-8 encoded.") from exc
 
-    if not syllabus_text.strip():
+    if syllabus_text and not syllabus_text.strip():
         raise HTTPException(status_code=400, detail="Syllabus text cannot be empty.")
 
     assert course.id is not None
