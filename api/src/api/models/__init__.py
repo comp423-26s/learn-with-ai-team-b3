@@ -23,6 +23,7 @@ from .course import (
 )
 from .joke_generation import CreateJokeRequest, JokeResponse
 from .roster_upload import RosterUploadResponse, RosterUploadStatusResponse
+from .syllabus_upload import SyllabusUploadResponse
 from .task import TaskResponse
 from .user_profile import UpdateProfileRequest, UserProfile
 
@@ -43,6 +44,7 @@ __all__ = [
     "RosterMemberResponse",
     "RosterUploadResponse",
     "RosterUploadStatusResponse",
+    "SyllabusUploadResponse",
     "StudentSubmissionRow",
     "SubmitIyowRequest",
     "TaskResponse",
