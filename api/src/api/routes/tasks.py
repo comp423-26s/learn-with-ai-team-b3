@@ -100,7 +100,7 @@ async def upload_syllabus(
         raise HTTPException(status_code=400, detail="Provide file or syllabus_text, not both.")
 
     if file is None and not syllabus_text:
-        raise HTTPException(status_code=400, detail="Syllabus text is required.")
+        raise HTTPException(status_code=400, detail="Syllabus text cannot be empty.")
 
     if file is not None:
         if file.content_type not in (None, "text/plain"):

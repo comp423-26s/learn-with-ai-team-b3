@@ -192,3 +192,95 @@ async def test_upload_syllabus_raises_403_for_non_instructor() -> None:
     # Act / Assert
     with pytest.raises(AuthorizationError):
         await upload_syllabus(subject, course, course_svc, syllabus_upload_svc, file, None)
+
+
+@pytest.mark.anyio
+async def test_upload_syllabus_rejects_large_file_via_content_length() -> None:
+    subject = _stub_user()
+    course = _stub_course()
+
+    course_svc = MagicMock()
+    syllabus_upload_svc = MagicMock()
+
+    file = _make_upload_file()
+    file.headers = Headers({"content-length": str(11 * 1024 * 1024)})  # > 10MB
+
+    with pytest.raises(HTTPException) as exc_info:
+        await upload_syllabus(
+            subject,
+            course,
+            course_svc,
+            syllabus_upload_svc,
+            file,
+            None,
+        )
+
+    assert exc_info.value.status_code == 400
+    assert "File size exceeds" in exc_info.value.detail
+
+
+@pytest.mark.anyio
+async def test_upload_syllabus_rejects_empty_syllabus_text() -> None:
+    subject = _stub_user()
+    course = _stub_course()
+
+    course_svc = MagicMock()
+    syllabus_upload_svc = MagicMock()
+
+    with pytest.raises(HTTPException) as exc_info:
+        await upload_syllabus(
+            subject,
+            course,
+            course_svc,
+            syllabus_upload_svc,
+            None,
+            "",
+        )
+
+    assert exc_info.value.status_code == 400
+    assert exc_info.value.detail == "Syllabus text cannot be empty."
+
+
+@pytest.mark.anyio
+async def test_upload_syllabus_none_text_does_not_hit_strip_branch() -> None:
+    subject = _stub_user()
+    course = _stub_course()
+
+    course_svc = MagicMock()
+    syllabus_upload_svc = MagicMock()
+
+    with pytest.raises(HTTPException) as exc_info:
+        await upload_syllabus(
+            subject,
+            course,
+            course_svc,
+            syllabus_upload_svc,
+            None,
+            None,
+        )
+
+    assert exc_info.value.status_code == 400
+
+
+@pytest.mark.anyio
+async def test_upload_syllabus_whitespace_file_hits_strip_branch() -> None:
+    subject = _stub_user()
+    course = _stub_course()
+
+    course_svc = MagicMock()
+    syllabus_upload_svc = MagicMock()
+
+    file = _make_upload_file(content="   ")
+
+    with pytest.raises(HTTPException) as exc_info:
+        await upload_syllabus(
+            subject,
+            course,
+            course_svc,
+            syllabus_upload_svc,
+            file,
+            None,
+        )
+
+    assert exc_info.value.status_code == 400
+    assert exc_info.value.detail == "Syllabus text cannot be empty."
