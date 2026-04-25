@@ -30,6 +30,7 @@ from learnwithai.services.csxl_auth_service import (
     CSXLAuthService,
 )
 from learnwithai.services.roster_upload_service import RosterUploadService
+from learnwithai.services.syllabus_upload_service import SyllabusUploadService
 from learnwithai.services.task_service import TaskService
 from learnwithai.tables.activity import Activity
 from learnwithai.tables.course import Course
@@ -61,6 +62,7 @@ __all__ = [
     "SessionDI",
     "SettingsDI",
     "SubmissionRepositoryDI",
+    "SyllabusUploadServiceDI",
     "TaskRepositoryDI",
     "TaskServiceDI",
     "task_repository_factory",
@@ -89,6 +91,7 @@ __all__ = [
     "membership_repository_factory",
     "roster_upload_service_factory",
     "settings_factory",
+    "syllabus_upload_service_factory",
     "submission_repository_factory",
     "user_repository_factory",
 ]
@@ -301,6 +304,17 @@ def roster_upload_service_factory(
 
 
 RosterUploadServiceDI: TypeAlias = Annotated[RosterUploadService, Depends(roster_upload_service_factory)]
+
+
+def syllabus_upload_service_factory(
+    async_job_repo: AsyncJobRepositoryDI,
+    job_queue: JobQueueDI,
+) -> SyllabusUploadService:
+    """Creates the syllabus upload service for the current request."""
+    return SyllabusUploadService(async_job_repo, job_queue)
+
+
+SyllabusUploadServiceDI: TypeAlias = Annotated[SyllabusUploadService, Depends(syllabus_upload_service_factory)]
 
 
 def joke_generation_service_factory(

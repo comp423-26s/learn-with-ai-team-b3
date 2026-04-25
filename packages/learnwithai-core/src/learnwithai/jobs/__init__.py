@@ -15,9 +15,11 @@ from .echo import EchoJob, EchoJobHandler
 from .forbidden_job_queue import ForbiddenJobQueue
 from .noop_job_notifier import NoOpJobNotifier
 from .roster_upload import RosterUploadJob, RosterUploadJobHandler, RosterUploadOutput
+from .syllabus_upload import SyllabusUploadJob, SyllabusUploadJobHandler
 
 JobPayload: TypeAlias = Annotated[
-    Union[EchoJob, IyowFeedbackJob, JokeGenerationJob, RosterUploadJob], Discriminator("type")
+    Union[EchoJob, IyowFeedbackJob, JokeGenerationJob, RosterUploadJob, SyllabusUploadJob],
+    Discriminator("type"),
 ]
 
 job_payload_adapter: TypeAdapter[JobPayload] = TypeAdapter(JobPayload)
@@ -50,6 +52,7 @@ def get_job_handler_map() -> dict[type[Job], type[JobHandler[Any]]]:
         IyowFeedbackJob: IyowFeedbackJobHandler,
         JokeGenerationJob: JokeGenerationJobHandler,
         RosterUploadJob: RosterUploadJobHandler,
+        SyllabusUploadJob: SyllabusUploadJobHandler,
     }
 
 
@@ -63,6 +66,7 @@ __all__ = [
     "NoOpJobNotifier",
     "RosterUploadJob",
     "RosterUploadOutput",
+    "SyllabusUploadJob",
     "JobPayload",
     "get_job_handler_map",
 ]
