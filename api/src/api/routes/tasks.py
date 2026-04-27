@@ -11,6 +11,7 @@ from ..di import (
     CourseByCourseIDPathDI,
     CourseServiceDI,
     SyllabusUploadServiceDI,
+    TaskByTaskIDPathDI,
     TaskServiceDI,
 )
 from ..models import SyllabusUploadResponse, TaskResponse
@@ -50,6 +51,30 @@ def list_tasks(
     """Returns tasks visible to the authenticated user for the specified course."""
     tasks = task_svc.list_tasks(subject, course)
     return [_build_task_response(task) for task in tasks]
+
+
+@router.delete(
+    "/{task_id}",
+    status_code=204,
+    summary="Delete a task",
+    responses={
+        401: {"description": "Not authenticated."},
+        403: {"description": "Insufficient permissions."},
+        404: {"description": "Course or task not found."},
+    },
+)
+def delete_task(
+    subject: AuthenticatedUserDI,
+    course: CourseByCourseIDPathDI,
+    task: TaskByTaskIDPathDI,
+    course_svc: CourseServiceDI,
+    task_svc: TaskServiceDI,
+) -> None:
+    """Deletes a task. Only instructors may delete."""
+    if course.id is None or task.course_id != course.id:
+        raise HTTPException(status_code=404, detail="Task not found.")
+    course_svc.authorize_instructor(subject, course)
+    task_svc.delete_task(subject, course, task)
 
 
 @router.post(
