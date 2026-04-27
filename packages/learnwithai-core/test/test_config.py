@@ -89,6 +89,19 @@ def test_effective_rabbitmq_url_uses_default_value(
     assert rabbitmq_url == "amqp://guest:guest@rabbitmq:5672/"
 
 
+def test_parsed_rabbitmq_url_returns_parsed_effective_url() -> None:
+    # Arrange
+    settings = build_settings(rabbitmq_url="amqp://guest:guest@rabbitmq:5672/vhost")
+
+    # Act
+    parsed_url = settings._parsed_rabbitmq_url()
+
+    # Assert
+    assert parsed_url.scheme == "amqp"
+    assert parsed_url.netloc == "guest:guest@rabbitmq:5672"
+    assert parsed_url.path == "/vhost"
+
+
 def test_environment_flags_reflect_current_environment() -> None:
     # Arrange
     development_settings = build_settings(environment="development")
