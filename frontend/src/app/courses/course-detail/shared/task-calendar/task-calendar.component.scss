@@ -58,6 +58,7 @@
   &.event-midterm {
     background: #fef3c7;
     border-left-color: #d97706;
+    color: #92400e;
 
     .event-type-icon {
       color: #d97706;
@@ -65,11 +66,12 @@
   }
 
   &.event-final {
-    background: var(--mat-sys-error-container);
-    border-left-color: var(--mat-sys-error);
+    background: #ede9fe;
+    border-left-color: #7c3aed;
+    color: #4c1d95;
 
     .event-type-icon {
-      color: var(--mat-sys-error);
+      color: #7c3aed;
     }
   }
 }
@@ -206,8 +208,8 @@
   }
 
   &.badge-final {
-    background: var(--mat-sys-error-container);
-    color: var(--mat-sys-on-error-container);
+    background: #ede9fe;
+    color: #4c1d95;
   }
 }
 
@@ -248,6 +250,6 @@
   }
 
   &.dot-final {
-    background: var(--mat-sys-error);
+    background: #7c3aed;
   }
 }

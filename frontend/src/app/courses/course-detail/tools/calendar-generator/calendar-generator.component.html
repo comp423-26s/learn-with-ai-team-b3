@@ -3,64 +3,41 @@
   SPDX-License-Identifier: MIT
 -->
 
-<!-- File import (OpenAI-powered) -->
+<!-- Syllabus file import -->
 <mat-card appearance="outlined" class="import-card">
   <mat-card-header>
     <mat-icon mat-card-avatar class="icon-import">cloud_upload</mat-icon>
-    <mat-card-title>Import from File</mat-card-title>
+    <mat-card-title>Import from Syllabus</mat-card-title>
     <mat-card-subtitle
-      >Upload a PDF syllabus or CSV schedule — parsed automatically with AI</mat-card-subtitle
+      >Upload a PDF or DOCX syllabus — tasks extracted automatically with AI</mat-card-subtitle
     >
   </mat-card-header>
   <mat-card-content>
-    <!-- API key row -->
-    <div class="api-key-row">
-      <mat-form-field appearance="outline" class="api-key-field">
-        <mat-label>OpenAI API Key</mat-label>
-        <input
-          matInput
-          [type]="showApiKey() ? 'text' : 'password'"
-          [value]="apiKey()"
-          (input)="onApiKeyChange($any($event.target).value)"
-          placeholder="sk-..."
-          autocomplete="off"
-        />
-        <mat-hint>Stored locally in your browser — never sent to our servers</mat-hint>
-        <button
-          matSuffix
-          mat-icon-button
-          type="button"
-          (click)="showApiKey.set(!showApiKey())"
-          [attr.aria-label]="showApiKey() ? 'Hide API key' : 'Show API key'"
-        >
-          <mat-icon>{{ showApiKey() ? 'visibility_off' : 'visibility' }}</mat-icon>
-        </button>
-      </mat-form-field>
-    </div>
-
     <!-- File selection -->
-    <input #fileInput type="file" accept=".pdf,.csv" hidden (change)="onFileSelected($event)" />
+    <input #fileInput type="file" accept=".pdf,.docx" hidden (change)="onFileSelected($event)" />
 
     <div class="file-upload-area">
       @if (!selectedFile()) {
         <div class="upload-prompt">
           <mat-icon class="upload-icon">upload_file</mat-icon>
-          <p class="upload-label">Select a PDF or CSV file</p>
+          <p class="upload-label">Select a PDF or DOCX file</p>
           <div class="upload-buttons">
             <button mat-stroked-button type="button" (click)="fileInput.click()">
               <mat-icon>picture_as_pdf</mat-icon>
               Upload PDF Syllabus
             </button>
             <button mat-stroked-button type="button" (click)="fileInput.click()">
-              <mat-icon>table_chart</mat-icon>
-              Upload CSV Schedule
+              <mat-icon>description</mat-icon>
+              Upload DOCX Syllabus
             </button>
           </div>
         </div>
       } @else {
         <div class="selected-file">
           <mat-icon class="file-icon">
-            {{ selectedFile()!.name.endsWith('.csv') ? 'table_chart' : 'picture_as_pdf' }}
+            {{
+              selectedFile()!.name.toLowerCase().endsWith('.pdf') ? 'picture_as_pdf' : 'description'
+            }}
           </mat-icon>
           <div class="file-info">
             <span class="file-name">{{ selectedFile()!.name }}</span>
@@ -78,21 +55,28 @@
       <button
         mat-flat-button
         type="button"
-        (click)="parseUploadedFile()"
-        [disabled]="!selectedFile() || isParsing()"
+        (click)="uploadSyllabus()"
+        [disabled]="!selectedFile() || isExtracting() || isProcessing()"
       >
-        @if (isParsing()) {
+        @if (isExtracting() || isProcessing()) {
           <mat-spinner diameter="18" />
         } @else {
           <mat-icon>auto_fix_high</mat-icon>
         }
-        {{ isParsing() ? 'Parsing\u2026' : 'Parse & Add Events' }}
+        {{
+          isExtracting()
+            ? 'Reading file…'
+            : isProcessing()
+              ? 'Analyzing syllabus…'
+              : 'Extract & Add Events'
+        }}
       </button>
 
       @if (parseSuccessCount() !== null) {
         <span class="feedback feedback-success">
           <mat-icon>check_circle</mat-icon>
-          Added {{ parseSuccessCount() }} event{{ parseSuccessCount() !== 1 ? 's' : '' }} from file
+          Added {{ parseSuccessCount() }} event{{ parseSuccessCount() !== 1 ? 's' : '' }} from
+          syllabus
         </span>
       }
       @if (parseError()) {

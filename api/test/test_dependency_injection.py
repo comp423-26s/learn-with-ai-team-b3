@@ -15,6 +15,7 @@ from api.di import (
     course_repository_factory,
     get_activity_by_path_id,
     get_course_by_path_id,
+    get_task_by_path_id,
     get_user_by_pid,
     iyow_activity_repository_factory,
     iyow_activity_service_factory,
@@ -242,6 +243,28 @@ def test_iyow_submission_service_factory_returns_service() -> None:
     )
 
     assert isinstance(result, IyowSubmissionService)
+
+
+def test_get_task_by_path_id_returns_task() -> None:
+    task = MagicMock()
+    task_repo = MagicMock()
+    task_repo.get_by_id.return_value = task
+
+    result = get_task_by_path_id(10, task_repo)
+
+    assert result is task
+    task_repo.get_by_id.assert_called_once_with(10)
+
+
+def test_get_task_by_path_id_raises_for_missing_task() -> None:
+    task_repo = MagicMock()
+    task_repo.get_by_id.return_value = None
+
+    with pytest.raises(HTTPException) as exc_info:
+        get_task_by_path_id(10, task_repo)
+
+    assert exc_info.value.status_code == 404
+    assert exc_info.value.detail == "Task not found."
 
 
 def test_get_activity_by_path_id_returns_activity() -> None:
