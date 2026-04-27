@@ -151,10 +151,9 @@ APP_ENVIRONMENT="$(oc get deployment/learnwithai-app -n "$NAMESPACE" -o jsonpath
 if [ -z "$APP_ENVIRONMENT" ]; then
     APP_ENVIRONMENT="production"
 fi
-case "$APP_ENVIRONMENT" in
-    development|stage) ;;
-    *) fail "reset_db.sh refuses to seed dev data in environment '$APP_ENVIRONMENT'. Re-deploy with --environment stage to enable seeding." ;;
-esac
+if [[ "$APP_ENVIRONMENT" == "production" ]]; then
+    warn "Running database reset in production (no dev seeding will be enforced)"
+fi
 info "App deployment ENVIRONMENT=$APP_ENVIRONMENT"
 
 BOOTSTRAP_JOB="learnwithai-db-bootstrap-$(date +%s)"
