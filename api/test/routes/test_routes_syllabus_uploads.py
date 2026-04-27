@@ -234,6 +234,22 @@ async def test_upload_syllabus_rejects_invalid_pdf() -> None:
 
 
 @pytest.mark.anyio
+async def test_upload_syllabus_rejects_empty_pdf() -> None:
+    subject = _stub_user()
+    course = _stub_course()
+    course_svc = MagicMock()
+    syllabus_upload_svc = MagicMock()
+
+    file = _make_upload_file_bytes(b"", "application/pdf", "syllabus.pdf")
+
+    with pytest.raises(HTTPException) as exc_info:
+        await upload_syllabus(subject, course, course_svc, syllabus_upload_svc, file, None)
+
+    assert exc_info.value.status_code == 400
+    assert exc_info.value.detail == "PDF is empty."
+
+
+@pytest.mark.anyio
 async def test_upload_syllabus_rejects_pdf_without_text() -> None:
     subject = _stub_user()
     course = _stub_course()
