@@ -24,6 +24,7 @@ from api.di import (
     joke_repository_factory,
     roster_upload_service_factory,
     submission_repository_factory,
+    syllabus_upload_service_factory,
     task_repository_factory,
     task_service_factory,
 )
@@ -114,6 +115,17 @@ def test_roster_upload_service_factory_returns_service() -> None:
     result = roster_upload_service_factory(async_job_repo, user_repo, membership_repo, job_queue)
 
     assert isinstance(result, RosterUploadService)
+
+
+def test_syllabus_upload_service_factory_returns_service() -> None:
+    from learnwithai.services.syllabus_upload_service import SyllabusUploadService
+
+    async_job_repo = MagicMock()
+    job_queue = MagicMock()
+
+    result = syllabus_upload_service_factory(async_job_repo, job_queue)
+
+    assert isinstance(result, SyllabusUploadService)
 
 
 def test_joke_generation_service_factory_returns_service() -> None:

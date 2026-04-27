@@ -30,9 +30,11 @@ from learnwithai.services.csxl_auth_service import (
     CSXLAuthService,
 )
 from learnwithai.services.roster_upload_service import RosterUploadService
+from learnwithai.services.syllabus_upload_service import SyllabusUploadService
 from learnwithai.services.task_service import TaskService
 from learnwithai.tables.activity import Activity
 from learnwithai.tables.course import Course
+from learnwithai.tables.task import Task
 from learnwithai.tables.user import User
 from learnwithai.tools.jokes.repository import JokeRepository
 from learnwithai.tools.jokes.service import JokeGenerationService
@@ -61,6 +63,8 @@ __all__ = [
     "SessionDI",
     "SettingsDI",
     "SubmissionRepositoryDI",
+    "SyllabusUploadServiceDI",
+    "TaskByTaskIDPathDI",
     "TaskRepositoryDI",
     "TaskServiceDI",
     "task_repository_factory",
@@ -77,6 +81,7 @@ __all__ = [
     "get_authenticated_user",
     "get_course_by_path_id",
     "get_pagination_params",
+    "get_task_by_path_id",
     "get_user_by_path_pid",
     "get_user_by_pid",
     "iyow_activity_repository_factory",
@@ -89,6 +94,7 @@ __all__ = [
     "membership_repository_factory",
     "roster_upload_service_factory",
     "settings_factory",
+    "syllabus_upload_service_factory",
     "submission_repository_factory",
     "user_repository_factory",
 ]
@@ -236,6 +242,28 @@ def get_course_by_path_id(course_id: Annotated[int, Path()], course_repo: Course
 CourseByCourseIDPathDI: TypeAlias = Annotated[Course, Depends(get_course_by_path_id)]
 
 
+def get_task_by_path_id(task_id: Annotated[int, Path()], task_repo: TaskRepositoryDI) -> Task:
+    """Loads a task from the task_id path parameter.
+
+    Args:
+        task_id: Task identifier from the request path.
+        task_repo: Repository used to load tasks.
+
+    Returns:
+        The matching task.
+
+    Raises:
+        HTTPException: If the task does not exist.
+    """
+    task = task_repo.get_by_id(task_id)
+    if task is None:
+        raise HTTPException(status_code=404, detail="Task not found.")
+    return task
+
+
+TaskByTaskIDPathDI: TypeAlias = Annotated[Task, Depends(get_task_by_path_id)]
+
+
 def get_user_by_pid(pid: int, user_repo: UserRepositoryDI) -> User:
     """Loads a user by pid or raises an HTTP 404.
 
@@ -301,6 +329,17 @@ def roster_upload_service_factory(
 
 
 RosterUploadServiceDI: TypeAlias = Annotated[RosterUploadService, Depends(roster_upload_service_factory)]
+
+
+def syllabus_upload_service_factory(
+    async_job_repo: AsyncJobRepositoryDI,
+    job_queue: JobQueueDI,
+) -> SyllabusUploadService:
+    """Creates the syllabus upload service for the current request."""
+    return SyllabusUploadService(async_job_repo, job_queue)
+
+
+SyllabusUploadServiceDI: TypeAlias = Annotated[SyllabusUploadService, Depends(syllabus_upload_service_factory)]
 
 
 def joke_generation_service_factory(

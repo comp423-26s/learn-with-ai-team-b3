@@ -13,6 +13,7 @@ from learnwithai.jobs import (
     JobPayload,
     JokeGenerationJob,
     RosterUploadJob,
+    SyllabusUploadJob,
     get_job_handler_map,
     job_adapter,
     job_payload_adapter,
@@ -40,6 +41,7 @@ def test_jobs_package_exports_expected_symbols() -> None:
         "NoOpJobNotifier",
         "RosterUploadJob",
         "RosterUploadOutput",
+        "SyllabusUploadJob",
         "JobPayload",
         "get_job_handler_map",
     ]
@@ -166,6 +168,98 @@ def test_job_handler_map_points_roster_upload_to_handler() -> None:
 
     # Assert
     assert isinstance(handler, RosterUploadJobHandler)
+
+
+# ---- SyllabusUploadJob ----
+
+
+def test_job_adapter_builds_syllabus_upload_job_from_payload() -> None:
+    # Arrange
+    payload = {"type": "syllabus_upload", "job_id": 77}
+
+    # Act
+    job = job_adapter(payload)
+
+    # Assert
+    assert isinstance(job, SyllabusUploadJob)
+    assert job.job_id == 77
+
+
+def test_job_handler_map_points_syllabus_upload_to_handler() -> None:
+    # Arrange
+    from learnwithai.jobs.syllabus_upload import SyllabusUploadJobHandler
+
+    handler_class = get_job_handler_map()[SyllabusUploadJob]
+
+    # Act
+    handler = handler_class()
+
+    # Assert
+    assert isinstance(handler, SyllabusUploadJobHandler)
+
+
+def test_syllabus_upload_job_handler_executes_service() -> None:
+    # Arrange
+    from learnwithai.jobs.syllabus_upload import SyllabusUploadJobHandler
+
+    handler = SyllabusUploadJobHandler()
+    job = SyllabusUploadJob(job_id=21)
+    session = MagicMock()
+    mock_svc = MagicMock()
+
+    # Act
+    settings = MagicMock(
+        openai_api_key="key",
+        openai_model="model",
+        openai_endpoint="endpoint",
+        openai_api_version="version",
+    )
+
+    with (
+        patch("learnwithai.jobs.syllabus_upload.get_settings", return_value=settings),
+        patch("learnwithai.jobs.syllabus_upload.AiCompletionService"),
+        patch("learnwithai.jobs.syllabus_upload.SyllabusExtractionService"),
+        patch("learnwithai.jobs.syllabus_upload.TaskRepository"),
+        patch("learnwithai.jobs.syllabus_upload.MembershipRepository"),
+        patch("learnwithai.jobs.syllabus_upload.TaskService"),
+        patch("learnwithai.jobs.syllabus_upload.CourseRepository"),
+        patch("learnwithai.jobs.syllabus_upload.UserRepository"),
+        patch("learnwithai.jobs.syllabus_upload.AsyncJobRepository") as repo_cls,
+        patch("learnwithai.jobs.syllabus_upload.ForbiddenJobQueue") as queue_cls,
+        patch(
+            "learnwithai.services.syllabus_upload_service.SyllabusUploadService",
+            return_value=mock_svc,
+        ) as svc_cls,
+    ):
+        handler._execute(job, session)
+
+    # Assert
+    repo_cls.assert_called_once_with(session)
+    queue_cls.assert_called_once_with()
+    svc_cls.assert_called_once()
+    mock_svc.process_upload.assert_called_once_with(21)
+
+
+def test_syllabus_upload_job_handler_requires_openai_key() -> None:
+    # Arrange
+    from learnwithai.jobs.syllabus_upload import SyllabusUploadJobHandler
+
+    handler = SyllabusUploadJobHandler()
+    job = SyllabusUploadJob(job_id=9)
+    session = MagicMock()
+    settings = MagicMock(
+        openai_api_key=None,
+        openai_model="model",
+        openai_endpoint="endpoint",
+        openai_api_version="version",
+    )
+
+    # Act / Assert
+    with (
+        patch("learnwithai.jobs.syllabus_upload.get_settings", return_value=settings),
+        pytest.raises(RuntimeError, match="openai_api_key"),
+    ):
+        handler._execute(job, session)
 
 
 # ---- IyowFeedbackJob ----
