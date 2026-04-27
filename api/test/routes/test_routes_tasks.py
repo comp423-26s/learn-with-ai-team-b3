@@ -5,6 +5,7 @@
 
 from __future__ import annotations
 
+from collections.abc import Generator
 from datetime import datetime, timezone
 from unittest.mock import MagicMock
 
@@ -121,7 +122,7 @@ def test_delete_task_raises_404_for_wrong_course() -> None:
 
 
 @pytest.fixture
-def client() -> TestClient:
+def client() -> Generator[TestClient, None, None]:
     """TestClient for integration tests."""
     with TestClient(app) as c:
         yield c

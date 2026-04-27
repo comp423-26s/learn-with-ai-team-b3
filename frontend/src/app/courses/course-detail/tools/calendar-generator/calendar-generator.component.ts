@@ -27,7 +27,10 @@ import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 import { PageTitleService } from '../../../../page-title.service';
 import { LayoutNavigationService } from '../../../../layout/layout-navigation.service';
 import { JobUpdateService } from '../../../../job-update.service';
-import { TaskCalendar, TaskCalendarEvent } from '../../shared/task-calendar/task-calendar.component';
+import {
+  TaskCalendar,
+  TaskCalendarEvent,
+} from '../../shared/task-calendar/task-calendar.component';
 import { CalendarGeneratorService } from './calendar-generator.service';
 import type { CalendarEvent, EventType } from './calendar-generator.service';
 import { SyllabusUploadService } from '../syllabus-upload/syllabus-upload.service';
