@@ -3,8 +3,12 @@
 
 """Task routes for the public API."""
 
+from io import BytesIO
+
 from fastapi import APIRouter, Form, HTTPException, UploadFile
 from learnwithai.tables.task import Task
+from pypdf import PdfReader
+from pypdf.errors import PdfReadError
 
 from ..di import (
     AuthenticatedUserDI,
@@ -103,13 +107,27 @@ async def upload_syllabus(
         raise HTTPException(status_code=400, detail="Syllabus text cannot be empty.")
 
     if file is not None:
-        if file.content_type not in (None, "text/plain"):
-            raise HTTPException(status_code=400, detail="File must be plain text.")
+        if file.content_type not in (None, "text/plain", "application/pdf"):
+            raise HTTPException(status_code=400, detail="File must be plain text or PDF.")
         file_bytes = await file.read()
-        try:
-            syllabus_text = file_bytes.decode("utf-8")
-        except UnicodeDecodeError as exc:
-            raise HTTPException(status_code=400, detail="File must be UTF-8 encoded.") from exc
+        if file.content_type == "application/pdf":
+            if not file_bytes:
+                raise HTTPException(status_code=400, detail="PDF is empty.")
+            try:
+                reader = PdfReader(BytesIO(file_bytes))
+            except PdfReadError as exc:
+                raise HTTPException(status_code=400, detail="Invalid or unreadable PDF.") from exc
+            if reader.is_encrypted:
+                raise HTTPException(status_code=400, detail="PDF is encrypted.")
+            extracted = "".join(page.extract_text() or "" for page in reader.pages)
+            if not extracted.strip():
+                raise HTTPException(status_code=400, detail="PDF has no extractable text.")
+            syllabus_text = extracted
+        else:
+            try:
+                syllabus_text = file_bytes.decode("utf-8")
+            except UnicodeDecodeError as exc:
+                raise HTTPException(status_code=400, detail="File must be UTF-8 encoded.") from exc
 
     if syllabus_text and not syllabus_text.strip():
         raise HTTPException(status_code=400, detail="Syllabus text cannot be empty.")
