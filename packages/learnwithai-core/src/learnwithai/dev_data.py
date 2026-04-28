@@ -17,7 +17,6 @@ from .tables.async_job import AsyncJob, AsyncJobStatus
 from .tables.course import Course, Term
 from .tables.membership import Membership, MembershipState, MembershipType
 from .tables.submission import Submission
-from .tables.task import Task, TaskType
 from .tables.user import User
 from .tools.jokes.tables import Joke
 
@@ -89,35 +88,6 @@ def seed(session: Session) -> None:
         ),
     ]
     session.add_all(memberships)
-    session.flush()
-
-    tasks = [
-        Task(
-            title="Syllabus Quiz",
-            course_id=course.id,
-            type=TaskType.QUIZ,
-            due_at=datetime(2026, 1, 20, 23, 59, tzinfo=timezone.utc),
-            max_points=10.0,
-            created_at=datetime(2026, 1, 10, 12, 0, tzinfo=timezone.utc),
-        ),
-        Task(
-            title="Requirements Writeup",
-            course_id=course.id,
-            type=TaskType.HOMEWORK,
-            due_at=datetime(2026, 2, 3, 23, 59, tzinfo=timezone.utc),
-            max_points=50.0,
-            created_at=datetime(2026, 1, 15, 12, 0, tzinfo=timezone.utc),
-        ),
-        Task(
-            title="Project Proposal",
-            course_id=course.id,
-            type=TaskType.PROJECT,
-            due_at=datetime(2026, 2, 17, 23, 59, tzinfo=timezone.utc),
-            max_points=100.0,
-            created_at=datetime(2026, 1, 20, 12, 0, tzinfo=timezone.utc),
-        ),
-    ]
-    session.add_all(tasks)
     session.flush()
 
     joke_job = AsyncJob(
