@@ -5,7 +5,18 @@
 
 import { Injectable } from '@angular/core';
 
-export type EventType = 'assignment' | 'quiz' | 'midterm' | 'final';
+export type EventType =
+  | 'assignment'
+  | 'quiz'
+  | 'midterm'
+  | 'final'
+  | 'exam'
+  | 'project'
+  | 'reading'
+  | 'presentation'
+  | 'paper'
+  | 'homework'
+  | 'deadline';
 
 export interface CalendarEvent {
   id: string;

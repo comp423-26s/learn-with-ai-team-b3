@@ -13,6 +13,7 @@ import {
   DestroyRef,
   Injector,
 } from '@angular/core';
+import { CommonModule } from '@angular/common';
 import { ActivatedRoute } from '@angular/router';
 import { ReactiveFormsModule, FormBuilder, Validators } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
@@ -46,6 +47,7 @@ export type { EventType, CalendarEvent };
   selector: 'app-calendar-generator',
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
+    CommonModule,
     ReactiveFormsModule,
     MatButtonModule,
     MatFormFieldModule,
@@ -86,16 +88,44 @@ export class CalendarGenerator implements OnDestroy {
   protected readonly parseError = signal('');
   protected readonly parseSuccessCount = signal<number | null>(null);
 
-  protected readonly assignmentForm = this.fb.nonNullable.group({
+  protected readonly taskForm = this.fb.nonNullable.group({
     title: ['', Validators.required],
     date: ['', Validators.required],
+    type: ['assignment' as EventType, Validators.required],
   });
 
-  protected readonly examForm = this.fb.nonNullable.group({
-    title: ['', Validators.required],
-    date: ['', Validators.required],
-    type: ['quiz' as EventType, Validators.required],
-  });
+  // Available task types for the manual form, sorted alphabetically for the UI.
+  protected readonly taskTypes: EventType[] = [
+    'assignment',
+    'quiz',
+    'midterm',
+    'final',
+    'exam',
+    'project',
+    'reading',
+    'presentation',
+    'paper',
+    'homework',
+    'deadline',
+  ].sort() as EventType[];
+
+  protected displayTypeLabel(type: EventType): string {
+    const labels: Record<EventType, string> = {
+      assignment: 'Assignment',
+      quiz: 'Quiz',
+      midterm: 'Midterm',
+      final: 'Final',
+      exam: 'Exam',
+      project: 'Project',
+      reading: 'Reading',
+      presentation: 'Presentation',
+      paper: 'Paper',
+      homework: 'Homework',
+      deadline: 'Deadline',
+    };
+
+    return labels[type] ?? type;
+  }
 
   constructor() {
     this.layoutNavigation.clearContext();
@@ -174,22 +204,11 @@ export class CalendarGenerator implements OnDestroy {
 
   // ── Manual entry ───────────────────────────────────────────────────────────
 
-  protected addAssignment(): void {
-    if (this.assignmentForm.invalid) return;
-    const { title, date } = this.assignmentForm.getRawValue();
-    this.events.update((prev) => [
-      ...prev,
-      { id: crypto.randomUUID(), title, date, type: 'assignment' },
-    ]);
-    this.assignmentForm.reset();
-    this.focusDate.set(date);
-  }
-
-  protected addExam(): void {
-    if (this.examForm.invalid) return;
-    const { title, date, type } = this.examForm.getRawValue();
+  protected addTask(): void {
+    if (this.taskForm.invalid) return;
+    const { title, date, type } = this.taskForm.getRawValue();
     this.events.update((prev) => [...prev, { id: crypto.randomUUID(), title, date, type }]);
-    this.examForm.reset({ type: 'quiz' });
+    this.taskForm.reset({ type: 'assignment' });
     this.focusDate.set(date);
   }
 
