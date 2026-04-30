@@ -13,7 +13,9 @@ import {
   DestroyRef,
   Injector,
 } from '@angular/core';
+import { firstValueFrom } from 'rxjs';
 import { CommonModule } from '@angular/common';
+import { HttpClient } from '@angular/common/http';
 import { ActivatedRoute } from '@angular/router';
 import { ReactiveFormsModule, FormBuilder, Validators } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
@@ -212,7 +214,38 @@ export class CalendarGenerator implements OnDestroy {
     this.focusDate.set(date);
   }
 
-  protected removeEvent(id: string): void {
+  protected async removeEvent(id: string): Promise<void> {
+    const ev = this.events().find((e) => e.id === id);
+    if (!ev) return;
+
+    // If this event corresponds to a persisted Task, remove it from the backend first.
+    if (ev.backendTaskId != null) {
+      this.isProcessing.set(true);
+      try {
+        const http = this.injector.get(HttpClient) as HttpClient;
+        // Use Angular HttpClient so the auth interceptor attaches the bearer token.
+        const resp = await firstValueFrom(
+          http.delete(`/api/courses/${this.courseId}/tasks/${ev.backendTaskId}`, {
+            observe: 'response',
+          }),
+        );
+        if (resp.status === 404) throw new Error('Task not found.');
+        if (resp.status === 403) throw new Error('Insufficient permissions to delete task.');
+        if (resp.status >= 400) throw new Error('Failed to delete task.');
+      } catch (err) {
+        this.snackBar.open(
+          err instanceof Error ? err.message : 'Failed to delete task. Try again.',
+          undefined,
+          { duration: 5000 },
+        );
+        this.isProcessing.set(false);
+        return;
+      } finally {
+        this.isProcessing.set(false);
+      }
+    }
+
+    // Always remove locally and persist remaining events to localStorage
     this.events.update((prev) => prev.filter((e) => e.id !== id));
   }
 
@@ -337,11 +370,13 @@ export class CalendarGenerator implements OnDestroy {
   }
 
   private toCalendarEvent(event: TaskCalendarEvent): CalendarEvent {
+    const parsed = Number(event.id);
     return {
       id: event.id,
       title: event.title,
       date: event.date,
       type: this.normalizeType(event.type),
+      backendTaskId: Number.isFinite(parsed) ? parsed : undefined,
     };
   }
 

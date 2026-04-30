@@ -23,6 +23,7 @@ export interface CalendarEvent {
   title: string;
   date: string; // 'YYYY-MM-DD'
   type: EventType;
+  backendTaskId?: number; // optional — present when this event maps to a persisted Task.id
 }
 
 /** Handles localStorage persistence for the calendar generator. */
