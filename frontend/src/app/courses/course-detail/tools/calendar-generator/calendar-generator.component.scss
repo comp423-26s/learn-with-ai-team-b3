@@ -11,9 +11,10 @@
 
 .forms-row {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  grid-template-columns: 1fr;
   gap: 1.25rem;
   margin-bottom: 1.5rem;
+  width: 100%;
 }
 
 // ── Card header icons ─────────────────────────────────────────────────────────
@@ -160,15 +161,27 @@
 
 // ── Manual entry forms ────────────────────────────────────────────────────────
 
+.form-card {
+  display: block;
+  width: 100%;
+  max-width: none;
+}
+
 .event-form {
-  display: flex;
-  flex-direction: column;
-  gap: 0.25rem;
+  display: grid;
+  grid-template-columns: minmax(0, 2fr) minmax(0, 1fr) minmax(0, 1fr) auto;
+  gap: 1rem;
+  align-items: end;
   padding-top: 0.5rem;
+  width: 100%;
 }
 
 .full-width {
   width: 100%;
+}
+
+.event-form mat-form-field {
+  min-width: 0;
 }
 
 // ── Event list (legacy — kept for compatibility) ───────────────────────────────
