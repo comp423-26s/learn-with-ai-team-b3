@@ -122,7 +122,7 @@ Key steps:
 1. Create a unified `AsyncJob` record with the raw syllabus text.
 2. Enqueue a `syllabus_upload` job.
 3. In the worker, parse tasks with the AI extraction service.
-4. Create new `Task` records, skipping duplicates.
+4. Clear all existing `Task` records for the course, then create the newly extracted tasks.
 5. Persist counts and raw AI response to the `AsyncJob.output_data`.
 
 ## Database Schema
