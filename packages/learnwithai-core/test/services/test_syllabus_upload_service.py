@@ -130,7 +130,6 @@ def test_process_upload_updates_job_and_creates_tasks() -> None:
     user_repo.get_by_pid.return_value = subject
 
     task_repo = MagicMock()
-    task_repo.list_by_course.return_value = []
 
     task_svc = MagicMock()
 
@@ -166,6 +165,7 @@ def test_process_upload_updates_job_and_creates_tasks() -> None:
     assert job.output_data["skipped_count"] == 0
     assert job.output_data["error_count"] == 0
     assert job.completed_at is not None
+    task_repo.delete_by_course.assert_called_once_with(1)
     task_svc.create_task.assert_called_once()
 
 
@@ -310,11 +310,8 @@ def test_process_upload_skips_duplicates_and_value_errors() -> None:
     user_repo = MagicMock()
     user_repo.get_by_pid.return_value = subject
 
-    due_at = datetime(2026, 4, 30, 23, 59, tzinfo=timezone.utc)
     task_repo = MagicMock()
-    task_repo.list_by_course.return_value = [
-        MagicMock(title="Homework 1", due_at=due_at),
-    ]
+    task_repo.delete_by_course.return_value = None
 
     task_svc = MagicMock()
     task_svc.create_task.side_effect = ValueError("duplicate")
@@ -324,13 +321,13 @@ def test_process_upload_skips_duplicates_and_value_errors() -> None:
             ExtractedTask(
                 title="Homework 1",
                 task_type=TaskType.HOMEWORK,
-                due_at=due_at,
+                due_at=datetime(2026, 4, 30, 23, 59, tzinfo=timezone.utc),
                 max_points=None,
             ),
             ExtractedTask(
                 title="Homework 2",
                 task_type=TaskType.HOMEWORK,
-                due_at=due_at,
+                due_at=datetime(2026, 4, 30, 23, 59, tzinfo=timezone.utc),
                 max_points=None,
             ),
         ],
@@ -352,6 +349,7 @@ def test_process_upload_skips_duplicates_and_value_errors() -> None:
     svc.process_upload(1)
 
     # Assert
+    task_repo.delete_by_course.assert_called_once_with(1)
     assert job.output_data["created_count"] == 0
     assert job.output_data["skipped_count"] == 2
     assert job.output_data["error_count"] == 0

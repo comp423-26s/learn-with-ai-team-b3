@@ -57,3 +57,20 @@ def test_list_by_course_returns_empty_for_other_course(session: Session) -> None
     repo = TaskRepository(session)
 
     assert repo.list_by_course(999999) == []
+
+
+@pytest.mark.integration
+def test_delete_by_course_removes_only_target_course_tasks(session: Session) -> None:
+    course = _seed_course(session)
+    other_course = Course(course_number="COMP301", name="Other", term=Term.FALL, year=2026)
+    session.add(other_course)
+    session.flush()
+
+    repo = TaskRepository(session)
+    repo.create(_make_task(course, title="Keep Me", due_at=datetime(2025, 5, 1, tzinfo=timezone.utc)))
+    repo.create(_make_task(other_course, title="Leave Me", due_at=datetime(2025, 5, 1, tzinfo=timezone.utc)))
+
+    repo.delete_by_course(course.id)  # type: ignore[arg-type]
+
+    assert repo.list_by_course(course.id) == []  # type: ignore[arg-type]
+    assert [task.title for task in repo.list_by_course(other_course.id)] == ["Leave Me"]  # type: ignore[arg-type]
