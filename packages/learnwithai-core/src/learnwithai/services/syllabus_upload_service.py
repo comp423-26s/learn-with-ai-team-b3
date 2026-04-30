@@ -154,16 +154,12 @@ class SyllabusUploadService:
         assert self._task_repo is not None
         assert self._task_svc is not None
 
-        existing = {(task.title.lower(), task.due_at) for task in self._task_repo.list_by_course(course.id)}
+        self._task_repo.delete_by_course(course.id)
         created = 0
         skipped = 0
         errors: list[str] = []
 
         for task in extraction.tasks:
-            key = (task.title.lower(), task.due_at)
-            if key in existing:
-                skipped += 1
-                continue
             try:
                 self._task_svc.create_task(
                     subject,
@@ -174,7 +170,6 @@ class SyllabusUploadService:
                     task.max_points,
                 )
                 created += 1
-                existing.add(key)
             except AuthorizationError as exc:
                 errors.append(str(exc))
                 break

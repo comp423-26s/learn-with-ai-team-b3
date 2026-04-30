@@ -1,6 +1,6 @@
 """Persistence helpers for task records."""
 
-from sqlmodel import col, select
+from sqlmodel import col, delete, select
 
 from ..tables.task import Task
 from .base_repository import BaseRepository
@@ -25,3 +25,13 @@ class TaskRepository(BaseRepository[Task, int]):
         """
         stmt = select(Task).where(Task.course_id == course_id).order_by(col(Task.due_at).asc())
         return list(self._session.exec(stmt).all())
+
+    def delete_by_course(self, course_id: int) -> None:
+        """Deletes all tasks for a course.
+
+        Args:
+            course_id: The course whose tasks should be removed.
+        """
+        stmt = delete(Task).where(Task.course_id == course_id)  # type: ignore[arg-type]
+        self._session.exec(stmt)
+        self._session.flush()

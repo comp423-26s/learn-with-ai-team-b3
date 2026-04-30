@@ -309,7 +309,7 @@ export class CalendarGenerator implements OnDestroy {
     const confirmed = await ref.afterClosed().toPromise();
     if (confirmed && confirmed.length > 0) {
       const newEvents = confirmed.map((e) => this.toCalendarEvent(e));
-      this.events.update((prev) => [...prev, ...newEvents]);
+      this.events.set(newEvents);
       this.parseSuccessCount.set(newEvents.length);
 
       const earliest = newEvents.reduce((a, b) => (a.date < b.date ? a : b));
