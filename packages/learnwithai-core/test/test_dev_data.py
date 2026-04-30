@@ -13,7 +13,6 @@ from learnwithai.tables.activity import Activity
 from learnwithai.tables.async_job import AsyncJob, AsyncJobStatus
 from learnwithai.tables.membership import MembershipState, MembershipType
 from learnwithai.tables.submission import Submission
-from learnwithai.tables.task import Task, TaskType
 from learnwithai.tools.jokes.tables import Joke
 
 
@@ -41,15 +40,15 @@ def test_seed_creates_three_users_one_course_and_three_memberships() -> None:
 
     seed(session)
 
-    # add_all called three times: users, memberships, tasks
-    assert session.add_all.call_count == 3
+    # add_all called twice: users and memberships
+    assert session.add_all.call_count == 2
     # add called: course, joke_job, joke_request, iyow_activity, iyow_detail,
     #             iyow_feedback_job, iyow_submission, iyow_submission_detail
     assert session.add.call_count == 8
-    # flush called: users, course, memberships, tasks, joke_job, joke_request,
-    #               iyow_activity, iyow_detail, iyow_feedback_job, iyow_submission,
-    #               iyow_submission_detail
-    assert session.flush.call_count == 11
+    # flush called: users, course, memberships, joke_job, joke_request,
+    #               iyow_activity, iyow_detail, iyow_feedback_job,
+    #               iyow_submission, iyow_submission_detail
+    assert session.flush.call_count == 10
 
     # Verify users
     users = added[0]
@@ -73,14 +72,6 @@ def test_seed_creates_three_users_one_course_and_three_memberships() -> None:
     }
     for m in memberships:
         assert m.state == MembershipState.ENROLLED
-
-    # Verify tasks
-    tasks = added[2]
-    assert len(tasks) == 3
-    assert {t.type for t in tasks} == {TaskType.QUIZ, TaskType.HOMEWORK, TaskType.PROJECT}
-    for task in tasks:
-        assert isinstance(task, Task)
-        assert task.course_id == course.id
 
     # Verify joke job
     joke_job = added_single[1]
