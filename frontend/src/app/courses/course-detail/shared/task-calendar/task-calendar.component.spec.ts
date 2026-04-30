@@ -51,6 +51,10 @@ describe('TaskCalendar', () => {
     fixture.componentRef.setInput('allowRemoval', true);
     fixture.detectChanges();
 
+    const toggleButton = fixture.nativeElement.querySelector('.events-toggle');
+    toggleButton.click();
+    fixture.detectChanges();
+
     const eventTitles = Array.from(
       fixture.nativeElement.querySelectorAll('.event-title') as NodeListOf<HTMLElement>,
     ).map((el) => el.textContent?.trim());
@@ -59,6 +63,22 @@ describe('TaskCalendar', () => {
 
     expect(eventTitles).toEqual(['Quiz 1', 'Final Project']);
     expect(removeButtons.length).toBe(2);
+  });
+
+  it('keeps the added events list collapsed until expanded', () => {
+    fixture.componentRef.setInput('events', [
+      { id: 'e1', title: 'Quiz', date: '2026-04-15', type: 'quiz' },
+    ]);
+
+    fixture.detectChanges();
+
+    expect(fixture.nativeElement.querySelector('#added-events-dropdown')).toBeNull();
+
+    const toggle = fixture.nativeElement.querySelector('.events-toggle');
+    toggle.click();
+    fixture.detectChanges();
+
+    expect(fixture.nativeElement.querySelector('#added-events-dropdown')).toBeTruthy();
   });
 
   it('does not render remove buttons when allowRemoval is false', () => {
@@ -81,6 +101,10 @@ describe('TaskCalendar', () => {
     const spy = vi.fn();
     component.removeEvent.subscribe(spy);
 
+    fixture.detectChanges();
+
+    const toggleButton = fixture.nativeElement.querySelector('.events-toggle');
+    toggleButton.click();
     fixture.detectChanges();
 
     const btn = fixture.nativeElement.querySelector('.remove-btn');
@@ -107,7 +131,7 @@ describe('TaskCalendar', () => {
     fixture.detectChanges();
 
     const actionButton = fixture.nativeElement.querySelector('button[mat-flat-button]');
-    const actionIcon = fixture.nativeElement.querySelector('.events-header mat-icon');
+    const actionIcon = fixture.nativeElement.querySelector('button[mat-flat-button] mat-icon');
 
     expect(actionButton).toBeTruthy();
     expect(actionButton.getAttribute('aria-label')).toBe('Add a new task');
@@ -133,7 +157,7 @@ describe('TaskCalendar', () => {
 
     fixture.detectChanges();
 
-    const icon = fixture.nativeElement.querySelector('.events-header mat-icon');
+    const icon = fixture.nativeElement.querySelector('button[mat-flat-button] mat-icon');
     expect(icon).toBeNull();
   });
 
@@ -213,7 +237,7 @@ describe('TaskCalendar', () => {
     fixture.detectChanges();
 
     const actionButton = fixture.nativeElement.querySelector('button[mat-flat-button]');
-    const actionIcon = fixture.nativeElement.querySelector('.events-header mat-icon');
+    const actionIcon = fixture.nativeElement.querySelector('button[mat-flat-button] mat-icon');
 
     expect(actionButton).toBeTruthy();
     expect(actionIcon).toBeFalsy();

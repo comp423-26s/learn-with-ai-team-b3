@@ -66,6 +66,7 @@ export class TaskCalendar {
 
   protected readonly weekDays = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
   private readonly currentMonth = signal(new Date());
+  protected readonly isEventsMenuOpen = signal(false);
 
   protected readonly sortedEvents = computed(() =>
     [...this.events()].sort((a, b) => a.date.localeCompare(b.date)),
@@ -114,6 +115,16 @@ export class TaskCalendar {
         this.jumpToMonth(focus);
       }
     });
+
+    effect(() => {
+      if (this.sortedEvents().length === 0) {
+        this.isEventsMenuOpen.set(false);
+      }
+    });
+  }
+
+  protected toggleEventsMenu(): void {
+    this.isEventsMenuOpen.update((isOpen) => !isOpen);
   }
 
   protected prevMonth(): void {
