@@ -11,9 +11,14 @@
 
 .events-header {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   justify-content: space-between;
+  gap: 1rem;
   margin-bottom: 0.75rem;
+}
+
+.events-heading {
+  min-width: 0;
 }
 
 .events-title {
@@ -21,6 +26,35 @@
   font-size: 1rem;
   font-weight: 500;
   color: var(--mat-sys-on-surface-variant);
+}
+
+.events-summary {
+  margin: 0.25rem 0 0;
+  font-size: 0.8125rem;
+  color: var(--mat-sys-on-surface-variant);
+  opacity: 0.75;
+}
+
+.events-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+
+.events-toggle {
+  flex-shrink: 0;
+}
+
+.events-toggle mat-icon {
+  margin-right: 0.25rem;
+}
+
+.events-dropdown {
+  max-height: 18rem;
+  overflow: auto;
+  padding-right: 0.25rem;
 }
 
 .events-list {
@@ -106,6 +140,17 @@
   opacity: 0.6;
   padding: 1.5rem 0;
   margin-bottom: 2rem;
+}
+
+@media (max-width: 640px) {
+  .events-header {
+    flex-direction: column;
+  }
+
+  .events-actions {
+    width: 100%;
+    justify-content: flex-start;
+  }
 }
 
 // ── Calendar ─────────────────────────────────────────────────────────────────-
