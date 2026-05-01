@@ -4,8 +4,9 @@
 """Task routes for the public API."""
 
 from io import BytesIO
+from typing import Annotated
 
-from fastapi import APIRouter, Form, HTTPException, UploadFile
+from fastapi import APIRouter, Body, Form, HTTPException, UploadFile
 from learnwithai.tables.task import Task
 from pypdf import PdfReader
 from pypdf.errors import PdfReadError
@@ -18,7 +19,7 @@ from ..di import (
     TaskByTaskIDPathDI,
     TaskServiceDI,
 )
-from ..models import SyllabusUploadResponse, TaskResponse
+from ..models import SyllabusUploadResponse, TaskResponse, UpdateTaskRequest
 
 MAX_FILE_SIZE_BYTES = 10 * 1024 * 1024  # 10MB
 
@@ -55,6 +56,40 @@ def list_tasks(
     """Returns tasks visible to the authenticated user for the specified course."""
     tasks = task_svc.list_tasks(subject, course)
     return [_build_task_response(task) for task in tasks]
+
+
+@router.patch(
+    "/{task_id}",
+    response_model=TaskResponse,
+    summary="Update a task",
+    responses={
+        401: {"description": "Not authenticated."},
+        403: {"description": "Insufficient permissions."},
+        404: {"description": "Course or task not found."},
+    },
+)
+def update_task(
+    subject: AuthenticatedUserDI,
+    course: CourseByCourseIDPathDI,
+    task: TaskByTaskIDPathDI,
+    body: Annotated[UpdateTaskRequest, Body()],
+    course_svc: CourseServiceDI,
+    task_svc: TaskServiceDI,
+) -> TaskResponse:
+    """Updates a task. Only instructors may edit."""
+    if course.id is None or task.course_id != course.id:
+        raise HTTPException(status_code=404, detail="Task not found.")
+    course_svc.authorize_instructor(subject, course)
+    updated = task_svc.update_task(
+        subject,
+        course,
+        task,
+        body.title,
+        body.type,
+        body.due_at,
+        body.max_points,
+    )
+    return _build_task_response(updated)
 
 
 @router.delete(
