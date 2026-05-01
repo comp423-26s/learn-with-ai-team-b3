@@ -28,9 +28,7 @@ export interface TaskEditDialogResult {
 }
 
 const TASK_TYPES: TaskCalendarEventType[] = [
-  'assignment',
   'quiz',
-  'midterm',
   'final',
   'exam',
   'project',

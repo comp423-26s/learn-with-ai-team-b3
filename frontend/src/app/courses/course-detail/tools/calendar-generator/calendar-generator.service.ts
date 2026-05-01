@@ -6,9 +6,7 @@
 import { Injectable } from '@angular/core';
 
 export type EventType =
-  | 'assignment'
   | 'quiz'
-  | 'midterm'
   | 'final'
   | 'exam'
   | 'project'
