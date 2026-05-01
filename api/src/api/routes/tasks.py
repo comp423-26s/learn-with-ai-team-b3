@@ -19,7 +19,7 @@ from ..di import (
     TaskByTaskIDPathDI,
     TaskServiceDI,
 )
-from ..models import SyllabusUploadResponse, TaskResponse, UpdateTaskRequest
+from ..models import CreateTaskRequest, SyllabusUploadResponse, TaskResponse, UpdateTaskRequest
 
 MAX_FILE_SIZE_BYTES = 10 * 1024 * 1024  # 10MB
 
@@ -56,6 +56,37 @@ def list_tasks(
     """Returns tasks visible to the authenticated user for the specified course."""
     tasks = task_svc.list_tasks(subject, course)
     return [_build_task_response(task) for task in tasks]
+
+
+@router.post(
+    "",
+    response_model=TaskResponse,
+    status_code=201,
+    summary="Create a new task",
+    responses={
+        401: {"description": "Not authenticated."},
+        403: {"description": "Insufficient permissions."},
+        404: {"description": "Course not found."},
+    },
+)
+def create_task(
+    subject: AuthenticatedUserDI,
+    course: CourseByCourseIDPathDI,
+    body: Annotated[CreateTaskRequest, Body()],
+    course_svc: CourseServiceDI,
+    task_svc: TaskServiceDI,
+) -> TaskResponse:
+    """Creates a new task for a course. Only instructors may create tasks."""
+    course_svc.authorize_instructor(subject, course)
+    created = task_svc.create_task(
+        subject,
+        course,
+        body.title,
+        body.type,
+        body.due_at,
+        body.max_points,
+    )
+    return _build_task_response(created)
 
 
 @router.patch(
