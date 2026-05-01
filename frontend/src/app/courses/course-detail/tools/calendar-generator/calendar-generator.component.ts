@@ -236,7 +236,7 @@ export class CalendarGenerator implements OnDestroy {
           backendTaskId: task.id,
         },
       ]);
-      this.taskForm.reset({ type: 'assignment' });
+      this.taskForm.reset({ type: 'deadline' });
       this.focusDate.set(date);
     } catch (err) {
       this.snackBar.open(this.taskRequestError(err, 'create'), undefined, { duration: 5000 });
