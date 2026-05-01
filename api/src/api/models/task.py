@@ -21,6 +21,15 @@ class TaskResponse(BaseModel):
     created_at: datetime
 
 
+class CreateTaskRequest(BaseModel):
+    """Request body for creating a new task."""
+
+    title: str
+    type: TaskType
+    due_at: datetime
+    max_points: float | None = None
+
+
 class UpdateTaskRequest(BaseModel):
     """Request body for updating an existing task."""
 
