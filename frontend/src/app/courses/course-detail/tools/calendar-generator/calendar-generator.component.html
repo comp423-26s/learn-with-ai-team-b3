@@ -133,11 +133,13 @@
 <app-task-calendar
   [events]="events()"
   [allowRemoval]="true"
+  [allowEditing]="true"
   [actionLabel]="'Export .ics'"
   [actionIcon]="'download'"
   [actionAriaLabel]="'Export calendar as .ics file'"
   [emptyMessage]="'Add assignments and exams above to populate the calendar.'"
   [focusDate]="focusDate()"
+  (editEvent)="editEvent($event)"
   (removeEvent)="removeEvent($event)"
   (action)="exportIcs()"
 />

@@ -133,6 +133,7 @@ export class SyllabusReviewDialog {
       title: task.title,
       date,
       type: this.normalizeType(task.type),
+      maxPoints: task.max_points ?? null,
     };
   }
 

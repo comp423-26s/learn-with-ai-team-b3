@@ -15,7 +15,7 @@ import {
 } from '@angular/core';
 import { firstValueFrom } from 'rxjs';
 import { CommonModule } from '@angular/common';
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { ActivatedRoute } from '@angular/router';
 import { ReactiveFormsModule, FormBuilder, Validators } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
@@ -41,6 +41,12 @@ import {
   SyllabusReviewDialog,
   SyllabusReviewData,
 } from '../syllabus-upload/syllabus-review-dialog.component';
+import {
+  TaskEditDialog,
+  TaskEditDialogData,
+  TaskEditDialogResult,
+} from './task-edit-dialog.component';
+import { Task } from '../../../../api/models';
 
 export type { EventType, CalendarEvent };
 
@@ -209,9 +215,72 @@ export class CalendarGenerator implements OnDestroy {
   protected addTask(): void {
     if (this.taskForm.invalid) return;
     const { title, date, type } = this.taskForm.getRawValue();
-    this.events.update((prev) => [...prev, { id: crypto.randomUUID(), title, date, type }]);
+    this.events.update((prev) => [
+      ...prev,
+      { id: crypto.randomUUID(), title, date, type, maxPoints: null },
+    ]);
     this.taskForm.reset({ type: 'assignment' });
     this.focusDate.set(date);
+  }
+
+  protected async editEvent(id: string): Promise<void> {
+    const ev = this.events().find((event) => event.id === id);
+    if (!ev) return;
+
+    const ref = this.dialog.open<TaskEditDialog, TaskEditDialogData, TaskEditDialogResult>(
+      TaskEditDialog,
+      {
+        data: {
+          title: ev.title,
+          date: ev.date,
+          type: ev.type,
+          maxPoints: ev.maxPoints ?? null,
+        },
+        width: '520px',
+      },
+    );
+
+    const result = await firstValueFrom(ref.afterClosed());
+    if (!result) return;
+
+    try {
+      if (ev.backendTaskId != null) {
+        const saved = await this.updatePersistedTask(ev.backendTaskId, result);
+        if (!saved) return;
+
+        this.events.update((prev) =>
+          prev.map((event) =>
+            event.id === id
+              ? {
+                  ...event,
+                  title: saved.title,
+                  date: saved.due_at.split('T')[0] ?? result.date,
+                  type: this.normalizeType(saved.type),
+                  maxPoints: saved.max_points ?? null,
+                }
+              : event,
+          ),
+        );
+      } else {
+        this.events.update((prev) =>
+          prev.map((event) =>
+            event.id === id
+              ? {
+                  ...event,
+                  title: result.title,
+                  date: result.date,
+                  type: result.type,
+                  maxPoints: result.maxPoints,
+                }
+              : event,
+          ),
+        );
+      }
+
+      this.focusDate.set(result.date);
+    } catch {
+      return;
+    }
   }
 
   protected async removeEvent(id: string): Promise<void> {
@@ -224,20 +293,11 @@ export class CalendarGenerator implements OnDestroy {
       try {
         const http = this.injector.get(HttpClient) as HttpClient;
         // Use Angular HttpClient so the auth interceptor attaches the bearer token.
-        const resp = await firstValueFrom(
-          http.delete(`/api/courses/${this.courseId}/tasks/${ev.backendTaskId}`, {
-            observe: 'response',
-          }),
+        await firstValueFrom(
+          http.delete(`/api/courses/${this.courseId}/tasks/${ev.backendTaskId}`),
         );
-        if (resp.status === 404) throw new Error('Task not found.');
-        if (resp.status === 403) throw new Error('Insufficient permissions to delete task.');
-        if (resp.status >= 400) throw new Error('Failed to delete task.');
       } catch (err) {
-        this.snackBar.open(
-          err instanceof Error ? err.message : 'Failed to delete task. Try again.',
-          undefined,
-          { duration: 5000 },
-        );
+        this.snackBar.open(this.taskRequestError(err, 'delete'), undefined, { duration: 5000 });
         this.isProcessing.set(false);
         return;
       } finally {
@@ -376,6 +436,7 @@ export class CalendarGenerator implements OnDestroy {
       title: event.title,
       date: event.date,
       type: this.normalizeType(event.type),
+      maxPoints: event.maxPoints ?? null,
       backendTaskId: Number.isFinite(parsed) ? parsed : undefined,
     };
   }
@@ -385,6 +446,42 @@ export class CalendarGenerator implements OnDestroy {
     if (type === 'final') return 'final';
     if (type === 'midterm' || type === 'exam') return 'midterm';
     return 'assignment';
+  }
+
+  private async updatePersistedTask(
+    taskId: number,
+    event: TaskEditDialogResult,
+  ): Promise<Task | null> {
+    this.isProcessing.set(true);
+    try {
+      const http = this.injector.get(HttpClient) as HttpClient;
+      return await firstValueFrom(
+        http.patch<Task>(`/api/courses/${this.courseId}/tasks/${taskId}`, {
+          title: event.title,
+          type: event.type,
+          due_at: `${event.date}T00:00:00Z`,
+          max_points: event.maxPoints,
+        }),
+      );
+    } catch (err) {
+      this.snackBar.open(this.taskRequestError(err, 'update'), undefined, { duration: 5000 });
+      return null;
+    } finally {
+      this.isProcessing.set(false);
+    }
+  }
+
+  private taskRequestError(err: unknown, action: 'delete' | 'update'): string {
+    if (err instanceof HttpErrorResponse) {
+      if (err.status === 404) {
+        return 'Task not found.';
+      }
+      if (err.status === 403) {
+        return `Insufficient permissions to ${action} task.`;
+      }
+    }
+
+    return `Failed to ${action} task. Try again.`;
   }
 
   private toDateStr(d: Date): string {

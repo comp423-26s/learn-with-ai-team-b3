@@ -23,6 +23,7 @@ export interface CalendarEvent {
   title: string;
   date: string; // 'YYYY-MM-DD'
   type: EventType;
+  maxPoints?: number | null;
   backendTaskId?: number; // optional — present when this event maps to a persisted Task.id
 }
 
