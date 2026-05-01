@@ -18,6 +18,7 @@ def test_api_models_exports_expected_symbols() -> None:
         "CreateCourseRequest",
         "CreateIyowActivityRequest",
         "CreateJokeRequest",
+        "CreateTaskRequest",
         "IyowActivityResponse",
         "IyowSubmissionResponse",
         "JokeResponse",

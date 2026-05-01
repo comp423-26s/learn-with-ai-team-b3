@@ -16,6 +16,7 @@ export type { CourseResponse } from './models/course-response';
 export type { CreateCourseRequest } from './models/create-course-request';
 export type { CreateIyowActivityRequest } from './models/create-iyow-activity-request';
 export type { CreateJokeRequest } from './models/create-joke-request';
+export type { CreateTaskRequest } from './models/create-task-request';
 export type { HttpValidationError } from './models/http-validation-error';
 export type { IyowActivityResponse } from './models/iyow-activity-response';
 export type { IyowSubmissionResponse } from './models/iyow-submission-response';
