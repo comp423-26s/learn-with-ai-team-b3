@@ -30,6 +30,7 @@ def test_api_models_exports_expected_symbols() -> None:
         "SubmitIyowRequest",
         "SyllabusUploadResponse",
         "TaskResponse",
+        "UpdateTaskRequest",
         "UpdateCourseRequest",
         "UpdateIyowActivityRequest",
         "UpdateProfileRequest",
