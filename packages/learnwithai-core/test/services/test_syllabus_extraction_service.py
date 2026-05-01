@@ -172,6 +172,75 @@ def test_parse_due_at_falls_back_to_date_parse(monkeypatch: pytest.MonkeyPatch) 
     assert result == datetime(2026, 4, 30, 23, 59, tzinfo=timezone.utc)
 
 
+def test_parse_due_at_defaults_missing_year(monkeypatch: pytest.MonkeyPatch) -> None:
+    # Arrange
+    svc = SyllabusExtractionService(MagicMock())
+    monkeypatch.setattr(svc, "_current_year", lambda: 2026)
+
+    # Act
+    from_slash = svc._parse_due_at("04/30")
+    from_text = svc._parse_due_at("Apr 30th")
+
+    # Assert
+    assert from_slash == datetime(2026, 4, 30, 23, 59, tzinfo=timezone.utc)
+    assert from_text == datetime(2026, 4, 30, 23, 59, tzinfo=timezone.utc)
+
+
+def test_parse_non_iso_date_handles_empty_input() -> None:
+    # Arrange
+    svc = SyllabusExtractionService(MagicMock())
+
+    # Act
+    result = svc._parse_non_iso_date("   ")
+
+    # Assert
+    assert result is None
+
+
+def test_parse_non_iso_date_accepts_year() -> None:
+    # Arrange
+    svc = SyllabusExtractionService(MagicMock())
+
+    # Act
+    result = svc._parse_non_iso_date("04/30/2026")
+
+    # Assert
+    assert result == datetime(2026, 4, 30, 23, 59, tzinfo=timezone.utc)
+
+
+def test_normalize_date_text_handles_empty_input() -> None:
+    # Arrange
+    svc = SyllabusExtractionService(MagicMock())
+
+    # Act
+    result = svc._normalize_date_text("   ")
+
+    # Assert
+    assert result == ""
+
+
+def test_parse_date_with_formats_requires_default_year() -> None:
+    # Arrange
+    svc = SyllabusExtractionService(MagicMock())
+
+    # Act
+    result = svc._parse_date_with_formats("04/30", ["%m/%d"])
+
+    # Assert
+    assert result is None
+
+
+def test_parse_date_with_formats_handles_invalid_default_year() -> None:
+    # Arrange
+    svc = SyllabusExtractionService(MagicMock())
+
+    # Act
+    result = svc._parse_date_with_formats("04/30", ["%m/%d"], default_year=0)
+
+    # Assert
+    assert result is None
+
+
 def test_parse_due_at_handles_invalid_values() -> None:
     # Arrange
     svc = SyllabusExtractionService(MagicMock())

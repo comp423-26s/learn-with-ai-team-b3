@@ -6,6 +6,7 @@
 from __future__ import annotations
 
 import json
+import re
 from dataclasses import dataclass
 from datetime import date, datetime, time, timezone
 from typing import Any
@@ -16,7 +17,8 @@ from ..tables.task import TaskType
 SYLLABUS_SYSTEM_PROMPT = (
     "You extract structured course tasks from syllabus text. "
     "Return a JSON array of objects with keys: title, type, due_at, max_points. "
-    "Use ISO-8601 for due_at. Use null for missing max_points."
+    "Use ISO-8601 for due_at. Use the current year if the year is missing. "
+    "Use null for missing max_points."
 )
 
 
@@ -144,8 +146,56 @@ class SyllabusExtractionService:
         try:
             parsed_date = date.fromisoformat(cleaned)
         except ValueError:
-            return None
+            return self._parse_non_iso_date(cleaned)
         return datetime.combine(parsed_date, time(23, 59), tzinfo=timezone.utc)
+
+    def _parse_non_iso_date(self, value: str) -> datetime | None:
+        cleaned = self._normalize_date_text(value)
+        if not cleaned:
+            return None
+
+        with_year = ["%m/%d/%Y", "%m-%d-%Y", "%b %d %Y", "%B %d %Y"]
+        parsed = self._parse_date_with_formats(cleaned, with_year)
+        if parsed is not None:
+            return parsed
+
+        without_year = ["%m/%d", "%m-%d", "%b %d", "%B %d"]
+        return self._parse_date_with_formats(
+            cleaned,
+            without_year,
+            default_year=self._current_year(),
+        )
+
+    def _normalize_date_text(self, value: str) -> str:
+        cleaned = value.strip().replace(",", " ")
+        if not cleaned:
+            return ""
+        cleaned = re.sub(r"\b(\d{1,2})(st|nd|rd|th)\b", r"\1", cleaned, flags=re.IGNORECASE)
+        return " ".join(cleaned.split())
+
+    def _parse_date_with_formats(
+        self,
+        value: str,
+        formats: list[str],
+        default_year: int | None = None,
+    ) -> datetime | None:
+        for fmt in formats:
+            try:
+                parsed = datetime.strptime(value, fmt)
+            except ValueError:
+                continue
+            year = parsed.year if "%Y" in fmt else default_year
+            if year is None:
+                return None
+            try:
+                parsed_date = date(year, parsed.month, parsed.day)
+            except ValueError:
+                return None
+            return datetime.combine(parsed_date, time(23, 59), tzinfo=timezone.utc)
+        return None
+
+    def _current_year(self) -> int:
+        return datetime.now(timezone.utc).year
 
     def _ensure_timezone(self, value: datetime) -> datetime:
         if value.tzinfo is None:
