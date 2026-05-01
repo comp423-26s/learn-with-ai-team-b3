@@ -89,45 +89,23 @@
   </mat-card-content>
 </mat-card>
 
-<!-- Manual entry forms -->
+<!-- Manual entry form: single task form spanning full width -->
 <div class="forms-row">
-  <!-- Add Assignment -->
-  <mat-card appearance="outlined" class="form-card">
-    <mat-card-header>
-      <mat-icon mat-card-avatar class="icon-assignment">assignment</mat-icon>
-      <mat-card-title>Add Assignment</mat-card-title>
-      <mat-card-subtitle>Homework, projects, lab reports</mat-card-subtitle>
-    </mat-card-header>
-    <mat-card-content>
-      <form [formGroup]="assignmentForm" (ngSubmit)="addAssignment()" class="event-form">
-        <mat-form-field appearance="outline" class="full-width">
-          <mat-label>Title</mat-label>
-          <input matInput formControlName="title" placeholder="e.g. Problem Set 1" />
-        </mat-form-field>
-        <mat-form-field appearance="outline" class="full-width">
-          <mat-label>Due Date</mat-label>
-          <input matInput type="date" formControlName="date" />
-        </mat-form-field>
-        <button mat-flat-button type="submit" [disabled]="assignmentForm.invalid">
-          <mat-icon>add</mat-icon>
-          Add Assignment
-        </button>
-      </form>
-    </mat-card-content>
-  </mat-card>
-
-  <!-- Add Exam -->
   <mat-card appearance="outlined" class="form-card">
     <mat-card-header>
       <mat-icon mat-card-avatar class="icon-exam">school</mat-icon>
-      <mat-card-title>Add Exam</mat-card-title>
-      <mat-card-subtitle>Quizzes, midterms, and finals</mat-card-subtitle>
+      <mat-card-title>Add Task</mat-card-title>
+      <mat-card-subtitle>Choose a task type and add it to the calendar</mat-card-subtitle>
     </mat-card-header>
     <mat-card-content>
-      <form [formGroup]="examForm" (ngSubmit)="addExam()" class="event-form">
+      <form [formGroup]="taskForm" (ngSubmit)="addTask()" class="event-form">
         <mat-form-field appearance="outline" class="full-width">
           <mat-label>Title</mat-label>
-          <input matInput formControlName="title" placeholder="e.g. Midterm Exam" />
+          <input
+            matInput
+            formControlName="title"
+            placeholder="e.g. Midterm Exam or Problem Set 1"
+          />
         </mat-form-field>
         <mat-form-field appearance="outline" class="full-width">
           <mat-label>Date</mat-label>
@@ -136,14 +114,16 @@
         <mat-form-field appearance="outline" class="full-width">
           <mat-label>Type</mat-label>
           <mat-select formControlName="type">
-            <mat-option value="quiz">Quiz</mat-option>
-            <mat-option value="midterm">Midterm</mat-option>
-            <mat-option value="final">Final</mat-option>
+            @for (t of taskTypes; track t) {
+              <mat-option [value]="t">
+                {{ displayTypeLabel(t) }}
+              </mat-option>
+            }
           </mat-select>
         </mat-form-field>
-        <button mat-flat-button type="submit" [disabled]="examForm.invalid">
+        <button mat-flat-button type="submit" [disabled]="taskForm.invalid">
           <mat-icon>add</mat-icon>
-          Add Exam
+          Add Task
         </button>
       </form>
     </mat-card-content>

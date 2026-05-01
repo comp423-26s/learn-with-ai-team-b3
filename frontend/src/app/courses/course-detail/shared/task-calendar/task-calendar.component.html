@@ -7,54 +7,83 @@
 @if (sortedEvents().length > 0) {
   <section class="events-section" aria-label="Added events">
     <div class="events-header">
-      <h3 class="events-title">
-        {{ sortedEvents().length }} event{{ sortedEvents().length !== 1 ? 's' : '' }} added
-      </h3>
-      @if (actionLabel()) {
+      <div class="events-heading">
+        <h3 class="events-title">
+          {{ sortedEvents().length }} event{{ sortedEvents().length !== 1 ? 's' : '' }} added
+        </h3>
+        <p class="events-summary">Open the dropdown to review or remove tasks.</p>
+      </div>
+
+      <div class="events-actions">
         <button
-          mat-flat-button
+          mat-stroked-button
           type="button"
-          (click)="action.emit()"
-          [attr.aria-label]="actionAriaLabel() ?? actionLabel()"
+          class="events-toggle"
+          (click)="toggleEventsMenu()"
+          [attr.aria-expanded]="isEventsMenuOpen()"
+          aria-controls="added-events-dropdown"
         >
-          @if (actionIcon()) {
-            <mat-icon>{{ actionIcon() }}</mat-icon>
-          }
-          {{ actionLabel() }}
+          <mat-icon>{{ isEventsMenuOpen() ? 'expand_less' : 'expand_more' }}</mat-icon>
+          {{ isEventsMenuOpen() ? 'Hide tasks' : 'Show tasks' }}
         </button>
-      }
+
+        @if (actionLabel()) {
+          <button
+            mat-flat-button
+            type="button"
+            (click)="action.emit()"
+            [attr.aria-label]="actionAriaLabel() ?? actionLabel()"
+          >
+            @if (actionIcon()) {
+              <mat-icon>{{ actionIcon() }}</mat-icon>
+            }
+            {{ actionLabel() }}
+          </button>
+        }
+      </div>
     </div>
-    <div class="events-list" role="list">
-      @for (event of sortedEvents(); track event.id) {
-        <div
-          class="event-item"
-          role="listitem"
-          [class.event-assignment]="styleType(event.type) === 'assignment'"
-          [class.event-quiz]="styleType(event.type) === 'quiz'"
-          [class.event-midterm]="styleType(event.type) === 'midterm'"
-          [class.event-final]="styleType(event.type) === 'final'"
-        >
-          <mat-icon class="event-type-icon">{{ typeIcon(event.type) }}</mat-icon>
-          <div class="event-info">
-            <span class="event-title">{{ event.title }}</span>
-            <span class="event-meta"
-              >{{ typeLabel(event.type) }} &bull; {{ formatDate(event.date) }}</span
+
+    @if (isEventsMenuOpen()) {
+      <div
+        id="added-events-dropdown"
+        class="events-dropdown"
+        role="region"
+        aria-label="Added events list"
+      >
+        <div class="events-list" role="list">
+          @for (event of sortedEvents(); track event.id) {
+            <div
+              class="event-item"
+              role="listitem"
+              [class.event-assignment]="styleType(event.type) === 'assignment'"
+              [class.event-quiz]="styleType(event.type) === 'quiz'"
+              [class.event-midterm]="styleType(event.type) === 'midterm'"
+              [class.event-final]="styleType(event.type) === 'final'"
             >
-          </div>
-          @if (allowRemoval()) {
-            <button
-              mat-icon-button
-              class="remove-btn"
-              type="button"
-              (click)="removeEvent.emit(event.id)"
-              aria-label="Remove event"
-            >
-              <mat-icon>close</mat-icon>
-            </button>
+              <mat-icon class="event-type-icon">{{ typeIcon(event.type) }}</mat-icon>
+              <div class="event-info">
+                <span class="event-title">{{ event.title }}</span>
+                <span class="event-meta"
+                  >{{ typeLabel(event.type) }} &bull; {{ formatDate(event.date) }}</span
+                >
+              </div>
+
+              @if (allowRemoval()) {
+                <button
+                  mat-icon-button
+                  class="remove-btn"
+                  type="button"
+                  (click)="removeEvent.emit(event.id)"
+                  aria-label="Remove event"
+                >
+                  <mat-icon>close</mat-icon>
+                </button>
+              }
+            </div>
           }
         </div>
-      }
-    </div>
+      </div>
+    }
   </section>
 } @else {
   <p class="empty-state">{{ emptyMessage() }}</p>

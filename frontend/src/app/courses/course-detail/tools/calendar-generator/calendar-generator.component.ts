@@ -13,6 +13,9 @@ import {
   DestroyRef,
   Injector,
 } from '@angular/core';
+import { firstValueFrom } from 'rxjs';
+import { CommonModule } from '@angular/common';
+import { HttpClient } from '@angular/common/http';
 import { ActivatedRoute } from '@angular/router';
 import { ReactiveFormsModule, FormBuilder, Validators } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
@@ -46,6 +49,7 @@ export type { EventType, CalendarEvent };
   selector: 'app-calendar-generator',
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
+    CommonModule,
     ReactiveFormsModule,
     MatButtonModule,
     MatFormFieldModule,
@@ -86,16 +90,44 @@ export class CalendarGenerator implements OnDestroy {
   protected readonly parseError = signal('');
   protected readonly parseSuccessCount = signal<number | null>(null);
 
-  protected readonly assignmentForm = this.fb.nonNullable.group({
+  protected readonly taskForm = this.fb.nonNullable.group({
     title: ['', Validators.required],
     date: ['', Validators.required],
+    type: ['assignment' as EventType, Validators.required],
   });
 
-  protected readonly examForm = this.fb.nonNullable.group({
-    title: ['', Validators.required],
-    date: ['', Validators.required],
-    type: ['quiz' as EventType, Validators.required],
-  });
+  // Available task types for the manual form, sorted alphabetically for the UI.
+  protected readonly taskTypes: EventType[] = [
+    'assignment',
+    'quiz',
+    'midterm',
+    'final',
+    'exam',
+    'project',
+    'reading',
+    'presentation',
+    'paper',
+    'homework',
+    'deadline',
+  ].sort() as EventType[];
+
+  protected displayTypeLabel(type: EventType): string {
+    const labels: Record<EventType, string> = {
+      assignment: 'Assignment',
+      quiz: 'Quiz',
+      midterm: 'Midterm',
+      final: 'Final',
+      exam: 'Exam',
+      project: 'Project',
+      reading: 'Reading',
+      presentation: 'Presentation',
+      paper: 'Paper',
+      homework: 'Homework',
+      deadline: 'Deadline',
+    };
+
+    return labels[type] ?? type;
+  }
 
   constructor() {
     this.layoutNavigation.clearContext();
@@ -174,26 +206,46 @@ export class CalendarGenerator implements OnDestroy {
 
   // ── Manual entry ───────────────────────────────────────────────────────────
 
-  protected addAssignment(): void {
-    if (this.assignmentForm.invalid) return;
-    const { title, date } = this.assignmentForm.getRawValue();
-    this.events.update((prev) => [
-      ...prev,
-      { id: crypto.randomUUID(), title, date, type: 'assignment' },
-    ]);
-    this.assignmentForm.reset();
-    this.focusDate.set(date);
-  }
-
-  protected addExam(): void {
-    if (this.examForm.invalid) return;
-    const { title, date, type } = this.examForm.getRawValue();
+  protected addTask(): void {
+    if (this.taskForm.invalid) return;
+    const { title, date, type } = this.taskForm.getRawValue();
     this.events.update((prev) => [...prev, { id: crypto.randomUUID(), title, date, type }]);
-    this.examForm.reset({ type: 'quiz' });
+    this.taskForm.reset({ type: 'assignment' });
     this.focusDate.set(date);
   }
 
-  protected removeEvent(id: string): void {
+  protected async removeEvent(id: string): Promise<void> {
+    const ev = this.events().find((e) => e.id === id);
+    if (!ev) return;
+
+    // If this event corresponds to a persisted Task, remove it from the backend first.
+    if (ev.backendTaskId != null) {
+      this.isProcessing.set(true);
+      try {
+        const http = this.injector.get(HttpClient) as HttpClient;
+        // Use Angular HttpClient so the auth interceptor attaches the bearer token.
+        const resp = await firstValueFrom(
+          http.delete(`/api/courses/${this.courseId}/tasks/${ev.backendTaskId}`, {
+            observe: 'response',
+          }),
+        );
+        if (resp.status === 404) throw new Error('Task not found.');
+        if (resp.status === 403) throw new Error('Insufficient permissions to delete task.');
+        if (resp.status >= 400) throw new Error('Failed to delete task.');
+      } catch (err) {
+        this.snackBar.open(
+          err instanceof Error ? err.message : 'Failed to delete task. Try again.',
+          undefined,
+          { duration: 5000 },
+        );
+        this.isProcessing.set(false);
+        return;
+      } finally {
+        this.isProcessing.set(false);
+      }
+    }
+
+    // Always remove locally and persist remaining events to localStorage
     this.events.update((prev) => prev.filter((e) => e.id !== id));
   }
 
@@ -318,11 +370,13 @@ export class CalendarGenerator implements OnDestroy {
   }
 
   private toCalendarEvent(event: TaskCalendarEvent): CalendarEvent {
+    const parsed = Number(event.id);
     return {
       id: event.id,
       title: event.title,
       date: event.date,
       type: this.normalizeType(event.type),
+      backendTaskId: Number.isFinite(parsed) ? parsed : undefined,
     };
   }
 

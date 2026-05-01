@@ -5,13 +5,25 @@
 
 import { Injectable } from '@angular/core';
 
-export type EventType = 'assignment' | 'quiz' | 'midterm' | 'final';
+export type EventType =
+  | 'assignment'
+  | 'quiz'
+  | 'midterm'
+  | 'final'
+  | 'exam'
+  | 'project'
+  | 'reading'
+  | 'presentation'
+  | 'paper'
+  | 'homework'
+  | 'deadline';
 
 export interface CalendarEvent {
   id: string;
   title: string;
   date: string; // 'YYYY-MM-DD'
   type: EventType;
+  backendTaskId?: number; // optional — present when this event maps to a persisted Task.id
 }
 
 /** Handles localStorage persistence for the calendar generator. */
