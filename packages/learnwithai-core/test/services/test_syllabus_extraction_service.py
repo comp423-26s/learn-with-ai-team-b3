@@ -20,7 +20,7 @@ def test_extract_tasks_parses_json_and_normalizes() -> None:
         "["
         '{"title": "Homework 1", "type": "homework", "due_at": "2026-04-30", '
         '"max_points": 10},'
-        '{"title": "Midterm", "type": "midterm", "due_at": "2026-05-10T09:00:00Z"}'
+        '{"title": "Midterm", "type": "exam", "due_at": "2026-05-10T09:00:00Z"}'
         "]"
     )
     svc = SyllabusExtractionService(ai_svc)

@@ -55,9 +55,7 @@
             <div
               class="event-item"
               role="listitem"
-              [class.event-assignment]="styleType(event.type) === 'assignment'"
               [class.event-quiz]="styleType(event.type) === 'quiz'"
-              [class.event-midterm]="styleType(event.type) === 'midterm'"
               [class.event-final]="styleType(event.type) === 'final'"
             >
               <mat-icon class="event-type-icon">{{ typeIcon(event.type) }}</mat-icon>

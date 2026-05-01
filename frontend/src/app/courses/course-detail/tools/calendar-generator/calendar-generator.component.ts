@@ -99,14 +99,12 @@ export class CalendarGenerator implements OnDestroy {
   protected readonly taskForm = this.fb.nonNullable.group({
     title: ['', Validators.required],
     date: ['', Validators.required],
-    type: ['assignment' as EventType, Validators.required],
+    type: ['deadline' as EventType, Validators.required],
   });
 
   // Available task types for the manual form, sorted alphabetically for the UI.
   protected readonly taskTypes: EventType[] = [
-    'assignment',
     'quiz',
-    'midterm',
     'final',
     'exam',
     'project',
@@ -119,9 +117,7 @@ export class CalendarGenerator implements OnDestroy {
 
   protected displayTypeLabel(type: EventType): string {
     const labels: Record<EventType, string> = {
-      assignment: 'Assignment',
       quiz: 'Quiz',
-      midterm: 'Midterm',
       final: 'Final',
       exam: 'Exam',
       project: 'Project',
@@ -295,7 +291,7 @@ export class CalendarGenerator implements OnDestroy {
                   ...event,
                   title: result.title,
                   date: result.date,
-                  type: result.type,
+                  type: result.type as EventType,
                   maxPoints: result.maxPoints,
                 }
               : event,
@@ -350,10 +346,7 @@ export class CalendarGenerator implements OnDestroy {
       const end = new Date(event.date + 'T00:00:00');
       end.setDate(end.getDate() + 1);
       const endStr = this.toDateStr(end).replace(/-/g, '');
-      const label =
-        event.type !== 'assignment'
-          ? `${event.title} (${event.type.charAt(0).toUpperCase() + event.type.slice(1)})`
-          : event.title;
+      const label = `${event.title} (${event.type.charAt(0).toUpperCase() + event.type.slice(1)})`;
 
       lines.push(
         'BEGIN:VEVENT',
@@ -470,8 +463,14 @@ export class CalendarGenerator implements OnDestroy {
   private normalizeType(type: string): EventType {
     if (type === 'quiz') return 'quiz';
     if (type === 'final') return 'final';
-    if (type === 'midterm' || type === 'exam') return 'midterm';
-    return 'assignment';
+    if (type === 'exam') return 'exam';
+    if (type === 'project') return 'project';
+    if (type === 'reading') return 'reading';
+    if (type === 'presentation') return 'presentation';
+    if (type === 'paper') return 'paper';
+    if (type === 'homework') return 'homework';
+    if (type === 'deadline') return 'deadline';
+    return 'quiz';
   }
 
   private async updatePersistedTask(
