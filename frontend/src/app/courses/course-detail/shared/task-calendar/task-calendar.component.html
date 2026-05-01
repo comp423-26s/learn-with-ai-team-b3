@@ -11,7 +11,7 @@
         <h3 class="events-title">
           {{ sortedEvents().length }} event{{ sortedEvents().length !== 1 ? 's' : '' }} added
         </h3>
-        <p class="events-summary">Open the dropdown to review or remove tasks.</p>
+        <p class="events-summary">Open the dropdown to review, edit, or remove tasks.</p>
       </div>
 
       <div class="events-actions">
@@ -68,16 +68,32 @@
                 >
               </div>
 
-              @if (allowRemoval()) {
-                <button
-                  mat-icon-button
-                  class="remove-btn"
-                  type="button"
-                  (click)="removeEvent.emit(event.id)"
-                  aria-label="Remove event"
-                >
-                  <mat-icon>close</mat-icon>
-                </button>
+              @if (allowEditing() || allowRemoval()) {
+                <div class="event-actions">
+                  @if (allowEditing()) {
+                    <button
+                      mat-icon-button
+                      class="edit-btn"
+                      type="button"
+                      (click)="editEvent.emit(event.id)"
+                      [attr.aria-label]="'Edit ' + event.title"
+                    >
+                      <mat-icon>edit</mat-icon>
+                    </button>
+                  }
+
+                  @if (allowRemoval()) {
+                    <button
+                      mat-icon-button
+                      class="remove-btn"
+                      type="button"
+                      (click)="removeEvent.emit(event.id)"
+                      aria-label="Remove event"
+                    >
+                      <mat-icon>close</mat-icon>
+                    </button>
+                  }
+                </div>
               }
             </div>
           }

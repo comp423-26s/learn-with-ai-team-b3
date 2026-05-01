@@ -5,6 +5,7 @@
 
 from datetime import datetime
 
+from learnwithai.tables.task import TaskType
 from pydantic import BaseModel
 
 
@@ -18,3 +19,12 @@ class TaskResponse(BaseModel):
     due_at: datetime
     max_points: float | None = None
     created_at: datetime
+
+
+class UpdateTaskRequest(BaseModel):
+    """Request body for updating an existing task."""
+
+    title: str
+    type: TaskType
+    due_at: datetime
+    max_points: float | None = None

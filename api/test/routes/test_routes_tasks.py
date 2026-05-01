@@ -13,6 +13,7 @@ import pytest
 from fastapi import HTTPException
 from fastapi.testclient import TestClient
 from learnwithai.errors import AuthorizationError
+from learnwithai.tables.task import TaskType
 
 from api.di import (
     course_service_factory,
@@ -22,8 +23,8 @@ from api.di import (
     task_service_factory,
 )
 from api.main import app
-from api.models import TaskResponse
-from api.routes.tasks import _build_task_response, delete_task, list_tasks
+from api.models import TaskResponse, UpdateTaskRequest
+from api.routes.tasks import _build_task_response, delete_task, list_tasks, update_task
 
 
 def _stub_user(pid: int = 123456789) -> MagicMock:
@@ -114,6 +115,67 @@ def test_delete_task_raises_404_for_wrong_course() -> None:
 
     with pytest.raises(HTTPException) as exc_info:
         delete_task(subject, course, task, course_svc, task_svc)
+
+    assert exc_info.value.status_code == 404
+
+
+def test_update_task_calls_service_and_returns_response() -> None:
+    subject = _stub_user()
+    course = _stub_course(course_id=5)
+    task = _stub_task(task_id=12, course_id=5)
+    course_svc = MagicMock()
+    task_svc = MagicMock()
+    updated = _stub_task(task_id=12, course_id=5)
+    updated.title = "Updated Title"
+    updated.type = "quiz"
+    updated.due_at = datetime(2025, 5, 2, tzinfo=timezone.utc)
+    updated.max_points = 12.5
+    task_svc.update_task.return_value = updated
+    body = UpdateTaskRequest(
+        title="Updated Title",
+        type=TaskType.QUIZ,
+        due_at=datetime(2025, 5, 2, tzinfo=timezone.utc),
+        max_points=12.5,
+    )
+
+    result = update_task(subject, course, task, body, course_svc, task_svc)
+
+    assert result == TaskResponse(
+        id=12,
+        title="Updated Title",
+        course_id=5,
+        type="quiz",
+        due_at=body.due_at,
+        max_points=12.5,
+        created_at=updated.created_at,
+    )
+    course_svc.authorize_instructor.assert_called_once_with(subject, course)
+    task_svc.update_task.assert_called_once_with(
+        subject,
+        course,
+        task,
+        "Updated Title",
+        "quiz",
+        body.due_at,
+        12.5,
+    )
+
+
+def test_update_task_raises_404_for_wrong_course() -> None:
+    subject = _stub_user()
+    course = _stub_course(course_id=5)
+    task = _stub_task(task_id=12, course_id=9)
+    course_svc = MagicMock()
+    task_svc = MagicMock()
+    body = UpdateTaskRequest(
+        title="Updated Title",
+        type=TaskType.QUIZ,
+        due_at=datetime(2025, 5, 2, tzinfo=timezone.utc),
+        max_points=12.5,
+    )
+
+    with pytest.raises(HTTPException) as exc_info:
+        update_task(subject, course, task, body, course_svc, task_svc)
 
     assert exc_info.value.status_code == 404
 
