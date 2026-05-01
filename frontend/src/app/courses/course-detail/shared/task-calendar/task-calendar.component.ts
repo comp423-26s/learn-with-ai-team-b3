@@ -33,6 +33,7 @@ export interface TaskCalendarEvent {
   title: string;
   date: string;
   type: TaskCalendarEventType;
+  maxPoints?: number | null;
 }
 
 type TaskCalendarStyleType = 'assignment' | 'quiz' | 'midterm' | 'final';
@@ -55,6 +56,7 @@ interface CalendarDay {
 export class TaskCalendar {
   readonly events = input<TaskCalendarEvent[]>([]);
   readonly allowRemoval = input(false);
+  readonly allowEditing = input(false);
   readonly actionLabel = input<string | null>(null);
   readonly actionIcon = input<string | null>(null);
   readonly actionAriaLabel = input<string | null>(null);
@@ -62,6 +64,7 @@ export class TaskCalendar {
   readonly focusDate = input<string | null>(null);
 
   readonly removeEvent = output<string>();
+  readonly editEvent = output<string>();
   readonly action = output<void>();
 
   protected readonly weekDays = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];

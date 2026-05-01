@@ -92,6 +92,27 @@ describe('TaskCalendar', () => {
     expect(removeButtons.length).toBe(0);
   });
 
+  it('emits editEvent when edit button is clicked', () => {
+    fixture.componentRef.setInput('events', [
+      { id: 'e1', title: 'Quiz', date: '2026-04-15', type: 'quiz' },
+    ]);
+    fixture.componentRef.setInput('allowEditing', true);
+
+    const spy = vi.fn();
+    component.editEvent.subscribe(spy);
+
+    fixture.detectChanges();
+
+    const toggleButton = fixture.nativeElement.querySelector('.events-toggle');
+    toggleButton.click();
+    fixture.detectChanges();
+
+    const btn = fixture.nativeElement.querySelector('.edit-btn');
+    btn.click();
+
+    expect(spy).toHaveBeenCalledWith('e1');
+  });
+
   it('emits removeEvent when remove button is clicked', () => {
     fixture.componentRef.setInput('events', [
       { id: 'e1', title: 'Quiz', date: '2026-04-15', type: 'quiz' },
