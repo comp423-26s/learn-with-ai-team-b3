@@ -212,15 +212,41 @@ export class CalendarGenerator implements OnDestroy {
 
   // ── Manual entry ───────────────────────────────────────────────────────────
 
-  protected addTask(): void {
+  protected async addTask(): Promise<void> {
     if (this.taskForm.invalid) return;
     const { title, date, type } = this.taskForm.getRawValue();
-    this.events.update((prev) => [
-      ...prev,
-      { id: crypto.randomUUID(), title, date, type, maxPoints: null },
-    ]);
-    this.taskForm.reset({ type: 'assignment' });
-    this.focusDate.set(date);
+
+    this.isProcessing.set(true);
+    try {
+      const http = this.injector.get(HttpClient) as HttpClient;
+      const task = await firstValueFrom(
+        http.post<Task>(`/api/courses/${this.courseId}/tasks`, {
+          title,
+          type,
+          due_at: `${date}T00:00:00Z`,
+          max_points: null,
+        }),
+      );
+
+      // Only add to local state after successful persistence
+      this.events.update((prev) => [
+        ...prev,
+        {
+          id: String(task.id),
+          title: task.title,
+          date: task.due_at.split('T')[0] ?? date,
+          type: this.normalizeType(task.type),
+          maxPoints: task.max_points ?? null,
+          backendTaskId: task.id,
+        },
+      ]);
+      this.taskForm.reset({ type: 'assignment' });
+      this.focusDate.set(date);
+    } catch (err) {
+      this.snackBar.open(this.taskRequestError(err, 'create'), undefined, { duration: 5000 });
+    } finally {
+      this.isProcessing.set(false);
+    }
   }
 
   protected async editEvent(id: string): Promise<void> {
@@ -471,7 +497,7 @@ export class CalendarGenerator implements OnDestroy {
     }
   }
 
-  private taskRequestError(err: unknown, action: 'delete' | 'update'): string {
+  private taskRequestError(err: unknown, action: 'create' | 'delete' | 'update'): string {
     if (err instanceof HttpErrorResponse) {
       if (err.status === 404) {
         return 'Task not found.';
