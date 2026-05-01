@@ -23,8 +23,8 @@ from api.di import (
     task_service_factory,
 )
 from api.main import app
-from api.models import TaskResponse, UpdateTaskRequest
-from api.routes.tasks import _build_task_response, delete_task, list_tasks, update_task
+from api.models import CreateTaskRequest, TaskResponse, UpdateTaskRequest
+from api.routes.tasks import _build_task_response, create_task, delete_task, list_tasks, update_task
 
 
 def _stub_user(pid: int = 123456789) -> MagicMock:
@@ -78,6 +78,53 @@ def test_list_tasks_returns_response_list() -> None:
     assert len(result) == 2
     assert all(isinstance(item, TaskResponse) for item in result)
     task_svc.list_tasks.assert_called_once_with(subject, course)
+
+
+def test_create_task_calls_service_and_returns_response() -> None:
+    subject = _stub_user()
+    course = _stub_course(course_id=5)
+    course_svc = MagicMock()
+    task_svc = MagicMock()
+    created = _stub_task(task_id=15, course_id=5)
+    task_svc.create_task.return_value = created
+    body = CreateTaskRequest(
+        title="Task Title",
+        type=TaskType.QUIZ,
+        due_at=datetime(2025, 5, 1, tzinfo=timezone.utc),
+        max_points=100,
+    )
+
+    result = create_task(subject, course, body, course_svc, task_svc)
+
+    assert result == _build_task_response(created)
+    course_svc.authorize_instructor.assert_called_once_with(subject, course)
+    task_svc.create_task.assert_called_once_with(
+        subject,
+        course,
+        body.title,
+        body.type,
+        body.due_at,
+        body.max_points,
+    )
+
+
+def test_create_task_raises_403_for_non_instructor() -> None:
+    subject = _stub_user()
+    course = _stub_course(course_id=5)
+    course_svc = MagicMock()
+    course_svc.authorize_instructor.side_effect = AuthorizationError("Insufficient permissions")
+    task_svc = MagicMock()
+    body = CreateTaskRequest(
+        title="Task Title",
+        type=TaskType.QUIZ,
+        due_at=datetime(2025, 5, 1, tzinfo=timezone.utc),
+        max_points=100,
+    )
+
+    with pytest.raises(AuthorizationError):
+        create_task(subject, course, body, course_svc, task_svc)
+
+    task_svc.create_task.assert_not_called()
 
 
 def test_list_tasks_returns_empty_list() -> None:
