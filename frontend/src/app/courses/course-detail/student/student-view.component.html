@@ -30,7 +30,11 @@
     <app-task-calendar
       [events]="calendarEvents()"
       [focusDate]="focusDate()"
+      [actionLabel]="'Export .ics'"
+      [actionIcon]="'download'"
+      [actionAriaLabel]="'Export course calendar as .ics file'"
       [emptyMessage]="'No tasks have been posted for this course yet.'"
+      (action)="exportIcs()"
     />
   }
 </section>

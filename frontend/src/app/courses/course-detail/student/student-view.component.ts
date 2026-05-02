@@ -34,6 +34,10 @@ function toDateString(value: string): string {
   return value.split('T')[0]!;
 }
 
+function formatDateString(date: Date): string {
+  return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
+}
+
 function normalizeType(value: string): TaskCalendarEventType {
   const type = value.toLowerCase() as TaskCalendarEventType;
   return SUPPORTED_TYPES.has(type) ? type : 'assignment';
@@ -84,6 +88,43 @@ export class StudentView {
 
   protected reload(): void {
     void this.loadTasks();
+  }
+
+  protected exportIcs(): void {
+    const lines: string[] = [
+      'BEGIN:VCALENDAR',
+      'VERSION:2.0',
+      'PRODID:-//LearnWithAI//Course Calendar//EN',
+      'CALSCALE:GREGORIAN',
+    ];
+
+    for (const event of this.calendarEvents()) {
+      const dateStr = event.date.replace(/-/g, '');
+      const end = new Date(event.date + 'T00:00:00');
+      end.setDate(end.getDate() + 1);
+      const endStr = formatDateString(end).replace(/-/g, '');
+      const label = `${event.title} (${event.type.charAt(0).toUpperCase() + event.type.slice(1)})`;
+
+      lines.push(
+        'BEGIN:VEVENT',
+        `UID:${event.id}@learnwithai`,
+        `DTSTART;VALUE=DATE:${dateStr}`,
+        `DTEND;VALUE=DATE:${endStr}`,
+        `SUMMARY:${label}`,
+        `DESCRIPTION:Type: ${event.type}`,
+        'END:VEVENT',
+      );
+    }
+
+    lines.push('END:VCALENDAR');
+
+    const blob = new Blob([lines.join('\r\n')], { type: 'text/calendar;charset=utf-8' });
+    const url = URL.createObjectURL(blob);
+    const anchor = document.createElement('a');
+    anchor.href = url;
+    anchor.download = 'course-calendar.ics';
+    anchor.click();
+    URL.revokeObjectURL(url);
   }
 
   private async loadTasks(): Promise<void> {
