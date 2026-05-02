@@ -308,11 +308,15 @@ Before merging a complete feature change, run the repository QA check from the r
 ./scripts/qa.sh --check
 ```
 
-## Screenshots To Add
+## Screenshots
 
-Before final submission, add screenshots from the end-user personas' perspectives. Place image files under `docs/images/` and add a short narrative explaining what each screenshot shows. Useful filenames are:
+All screenshots live in the `docs/images/` directory.
 
-- docs/images/task-calendar-student.png
-- docs/images/calendar-generator-import.png
-- docs/images/calendar-generator-review.png
-- docs/images/task-calendar-month.png
+Narrative of the screenshot set:
+
+- `professor_edit_task_popup.jpg`: shows the instructor task review dialog with edit mode enabled for a task
+- `professor_landing_page_with_tasks_expanded.jpg`: shows the instructor calendar generator with the task list expanded after syllabus upload
+- `professor_landing_page_with_tasks_hidden.jpg`: shows the instructor calendar generator with the task list collapsed after syllabus upload
+- `professor_review_extracted_tasks_popup.jpg`: shows the instructor task review dialog with the list of extracted tasks after syllabus upload, before confirmation and persistence to the backend
+- `student_landing_page_with_tasks_expanded.jpg`: shows the student calendar view with tasks expanded after a syllabus upload and confirmation on the instructor side
+- `student_landing_page_with_tasks_hidden.jpg`: shows the student calendar view with tasks collapsed after a syllabus upload and confirmation on the instructor side
