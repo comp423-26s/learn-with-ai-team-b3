@@ -248,4 +248,70 @@ describe('StudentView', () => {
 
     expect(mockTaskService.list).toHaveBeenCalledTimes(2);
   });
+
+  it('should export loaded course tasks as an ics file', async () => {
+    const { fixture } = setup();
+    await flush();
+    fixture.detectChanges();
+
+    const originalCreateObjectUrl = URL.createObjectURL;
+    const originalRevokeObjectUrl = URL.revokeObjectURL;
+    const exportedBlobs: Blob[] = [];
+    const createObjectUrl = vi.fn((blob: Blob) => {
+      exportedBlobs.push(blob);
+      return 'blob:course-calendar';
+    });
+    const revokeObjectUrl = vi.fn();
+    Object.defineProperty(URL, 'createObjectURL', {
+      configurable: true,
+      value: createObjectUrl,
+    });
+    Object.defineProperty(URL, 'revokeObjectURL', {
+      configurable: true,
+      value: revokeObjectUrl,
+    });
+
+    const realCreateElement = document.createElement.bind(document);
+    const click = vi.fn();
+    const anchor = realCreateElement('a');
+    anchor.click = click;
+    const createElement = vi.spyOn(document, 'createElement').mockImplementation((tagName) => {
+      if (tagName === 'a') {
+        return anchor;
+      }
+      return realCreateElement(tagName);
+    });
+
+    try {
+      const exportButton: HTMLButtonElement | null = fixture.nativeElement.querySelector(
+        'button[aria-label="Export course calendar as .ics file"]',
+      );
+      expect(exportButton).toBeTruthy();
+      exportButton!.click();
+
+      expect(createObjectUrl).toHaveBeenCalledOnce();
+      const exportedBlob = exportedBlobs[0];
+      if (exportedBlob === undefined) {
+        throw new Error('Expected an .ics Blob to be exported.');
+      }
+      const blobText = await exportedBlob.text();
+      expect(blobText).toContain('SUMMARY:Homework 1 (Homework)');
+      expect(blobText).toContain('DTSTART;VALUE=DATE:20260421');
+      expect(blobText).toContain('DTEND;VALUE=DATE:20260422');
+      expect(anchor.download).toBe('course-calendar.ics');
+      expect(anchor.href).toBe('blob:course-calendar');
+      expect(click).toHaveBeenCalledOnce();
+      expect(revokeObjectUrl).toHaveBeenCalledWith('blob:course-calendar');
+    } finally {
+      createElement.mockRestore();
+      Object.defineProperty(URL, 'createObjectURL', {
+        configurable: true,
+        value: originalCreateObjectUrl,
+      });
+      Object.defineProperty(URL, 'revokeObjectURL', {
+        configurable: true,
+        value: originalRevokeObjectUrl,
+      });
+    }
+  });
 });
