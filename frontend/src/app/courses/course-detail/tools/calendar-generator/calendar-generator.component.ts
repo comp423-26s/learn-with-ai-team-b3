@@ -47,6 +47,7 @@ import {
   TaskEditDialogResult,
 } from './task-edit-dialog.component';
 import { Task } from '../../../../api/models';
+import { deleteUnconfirmedExtractedTasks } from './syllabus-review-reconciliation';
 
 export type { EventType, CalendarEvent };
 
@@ -313,11 +314,7 @@ export class CalendarGenerator implements OnDestroy {
     if (ev.backendTaskId != null) {
       this.isProcessing.set(true);
       try {
-        const http = this.injector.get(HttpClient) as HttpClient;
-        // Use Angular HttpClient so the auth interceptor attaches the bearer token.
-        await firstValueFrom(
-          http.delete(`/api/courses/${this.courseId}/tasks/${ev.backendTaskId}`),
-        );
+        await this.deletePersistedTask(ev.backendTaskId);
       } catch (err) {
         this.snackBar.open(this.taskRequestError(err, 'delete'), undefined, { duration: 5000 });
         this.isProcessing.set(false);
@@ -414,7 +411,7 @@ export class CalendarGenerator implements OnDestroy {
   }
 
   private async openReviewDialog(): Promise<void> {
-    let tasks;
+    let tasks: Task[];
     try {
       tasks = await this.syllabusService.getTasks(this.courseId);
     } catch {
@@ -438,13 +435,30 @@ export class CalendarGenerator implements OnDestroy {
     );
 
     const confirmed = await ref.afterClosed().toPromise();
-    if (confirmed && confirmed.length > 0) {
-      const newEvents = confirmed.map((e) => this.toCalendarEvent(e));
+    const confirmedEvents = confirmed ?? [];
+
+    try {
+      await deleteUnconfirmedExtractedTasks(tasks, confirmedEvents, (taskId) =>
+        this.deletePersistedTask(taskId),
+      );
+    } catch {
+      this.parseError.set(
+        'Tasks were extracted, but removed entries could not be discarded. Refresh and remove unwanted tasks manually.',
+      );
+      return;
+    }
+
+    if (confirmedEvents.length > 0) {
+      const newEvents = confirmedEvents.map((e) => this.toCalendarEvent(e));
       this.events.set(newEvents);
       this.parseSuccessCount.set(newEvents.length);
 
       const earliest = newEvents.reduce((a, b) => (a.date < b.date ? a : b));
       this.focusDate.set(earliest.date);
+    } else {
+      this.events.set([]);
+      this.parseSuccessCount.set(null);
+      this.focusDate.set(null);
     }
   }
 
@@ -494,6 +508,11 @@ export class CalendarGenerator implements OnDestroy {
     } finally {
       this.isProcessing.set(false);
     }
+  }
+
+  private async deletePersistedTask(taskId: number): Promise<void> {
+    const http = this.injector.get(HttpClient) as HttpClient;
+    await firstValueFrom(http.delete(`/api/courses/${this.courseId}/tasks/${taskId}`));
   }
 
   private taskRequestError(err: unknown, action: 'create' | 'delete' | 'update'): string {
